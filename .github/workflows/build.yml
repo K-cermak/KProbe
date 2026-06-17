@@ -41,6 +41,28 @@ jobs:
       - name: Install nFPM
         run: go install github.com/goreleaser/nfpm/v2/cmd/nfpm@latest
 
+      - name: Inline JS into HTML
+        run: |
+          cd web-editor
+          python3 -c '
+          import re
+
+          with open("index.html") as f:
+              html = f.read()
+
+          for js in ["config.js", "script.js", "modals.js"]:
+              with open(js) as f:
+                  content = f.read()
+
+              if re.search(f"<script[^>]*src=\"{js}\"[^>]*defer[^>]*></script>", html):
+                  content = f"document.addEventListener(\"DOMContentLoaded\", function() {{\n{content}\n}});"
+
+              html = re.sub(f"<script[^>]*src=\"{js}\"[^>]*></script>", f"<script>\n{content}\n</script>", html)
+
+          with open("editor.html", "w") as f:
+              f.write(html)
+          '
+
       - name: Build DEB package
         run: nfpm pkg --packager deb --target .
         env:
