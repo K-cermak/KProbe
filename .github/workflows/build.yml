@@ -18,13 +18,20 @@ jobs:
           go-version: '1.26'
 
       - name: Set dynamic version
-        run: echo "VERSION=2.0.${{ github.run_number }}" >> $GITHUB_ENV
+        run: |
+          FILE_VER=$(cat VERSION | xargs)
+          BRANCH_NAME="${{ github.ref_name }}"
+          echo "VERSION=${BRANCH_NAME}_${FILE_VER}" >> $GITHUB_ENV
 
       - name: Build Go binaries
         run: |
           mkdir -p bin
+          
           cd api && GOOS=linux GOARCH=amd64 go build -o ../bin/api-server
-          cd ../cli && GOOS=linux GOARCH=amd64 go build -o ../bin/cli
+          
+          cd ../cli
+          MODULE_NAME=$(go list -m)
+          GOOS=linux GOARCH=amd64 go build -ldflags "-X '${MODULE_NAME}/cmd.Version=${{ env.VERSION }}'" -o ../bin/cli
 
       - name: Install nFPM
         run: go install github.com/goreleaser/nfpm/v2/cmd/nfpm@latest
