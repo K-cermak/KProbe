@@ -25,8 +25,9 @@ contents:
   - src: ./package/99-ping.conf
     dst: /etc/sysctl.d/99-ping.conf
 
-symlinks:
-  /usr/local/bin/kprobe: /opt/kprobe/cli
+  - src: /opt/kprobe/cli
+    dst: /usr/local/bin/kprobe
+    type: symlink
 
 scripts:
   postinstall: ./package/scripts/postinst.sh
