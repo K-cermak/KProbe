@@ -13,6 +13,7 @@ import (
 
 // const dbPath = "db.sqlite" //FOR TESTING, CHANGE TO BELOW
 const dbPath = "/opt/kprobe/db.sqlite"
+const dbVersion = "v1.1"
 
 var DB *sql.DB
 
@@ -26,6 +27,10 @@ func connectDatabase() {
 	DB, err = sql.Open("sqlite", dbPath)
 	if err != nil {
 		helpers.PrintError(true, "Failed to connect to database ("+err.Error()+")")
+	}
+
+	if !DatabaseVersionCheck() {
+		helpers.PrintError(true, "Database version mismatch, you probably upgraded the application. Run <kprobe db reset> to reinitialize the database. Migration of the database is not supported.")
 	}
 }
 
@@ -85,7 +90,7 @@ func InitDatabase() {
 	}
 
 	InsertValue("probe_name", "New Probe")
-	InsertValue("db_version", "v1.0")
+	InsertValue("db_version", dbVersion)
 	InsertValue("db_init_time", time.Now().String())
 
 	InsertValue("config_set", "false")
@@ -97,6 +102,29 @@ func InitDatabase() {
 	InsertValue("ping_retries", "5")
 	InsertValue("ignore_ssl_errors", "false")
 }
+
+func DatabaseVersionCheck() bool {
+	if DB == nil {
+		connectDatabase()
+	}
+
+	var dbRealVersion string
+	
+	query := `
+	SELECT value
+	FROM keys
+	WHERE name = 'db_version';
+	`
+
+	err := DB.QueryRow(query).Scan(&dbRealVersion)
+	if err != nil {
+		helpers.PrintError(true, "Failed to get database version ("+err.Error()+")")
+	}
+
+	return dbRealVersion == dbVersion
+}
+
+
 
 func DatabaseExist() bool {
 	if _, err := os.Stat(dbPath); err == nil {
