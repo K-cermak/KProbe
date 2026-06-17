@@ -1,0 +1,34 @@
+name: "kprobe"
+arch: "amd64"
+platform: "linux"
+version: "${VERSION:-0.0.0}"
+maintainer: "Karel Cermak <info@karlosoft.com>"
+description: "Uptime Kuma Probe Extension"
+license: "MIT"
+vendor: "Karlosoft"
+
+contents:
+  - src: ./bin/api-server
+    dst: /opt/kprobe/api-server
+    file_info:
+      mode: 0755
+  - src: ./bin/cli
+    dst: /opt/kprobe/cli
+    file_info:
+      mode: 0755
+  - src: ./web-editor/editor.html
+    dst: /opt/kprobe/editor.html
+    file_info:
+      mode: 0644
+  - src: ./package/kprobe.service
+    dst: /etc/systemd/system/kprobe.service
+  - src: ./package/99-ping.conf
+    dst: /etc/sysctl.d/99-ping.conf
+
+symlinks:
+  /usr/local/bin/kprobe: /opt/kprobe/cli
+
+scripts:
+  postinstall: ./package/scripts/postinst.sh
+  preremove: ./package/scripts/prerm.sh
+  postremove: ./package/scripts/postrm.sh
