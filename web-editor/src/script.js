@@ -90,7 +90,7 @@ function renderTable() {
         let detele = document.createElement("td");
         let button = document.createElement("button");
         button.classList.add("btn", "btn-danger");
-        button.innerHTML = "<i class='bi bi-x-circle'></i>";
+        button.innerHTML = "<i class='bi bi-trash3-fill'></i>";
         button.onclick = function () {
             modalToDelete = i;
             genModal(resetFavModal);

@@ -6,7 +6,7 @@ var resetFavModal = {
         position : "center",
     },
     header : {
-        title : "Clear scan",
+        title : "Delete scan",
         closeButton: true,
     },
     main : {
@@ -20,7 +20,7 @@ var resetFavModal = {
                 function : "close",
             },
             function : {
-                text : "<i class='bi bi-trash3' ms-0 me-1'></i> Delete",
+                text : "<i class='bi bi-trash3-fill' ms-0 me-1'></i> Delete",
                 type : "danger",
                 function : "function",
                 dataset : function() {
