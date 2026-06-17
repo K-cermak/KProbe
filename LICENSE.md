@@ -10,7 +10,7 @@ You can use, distribute, modify it for free. However, the author assumes no resp
 
 Full text of the licence:
 
-Copyright (c) 2025 Karel Čermák (info@karlosoft.com)
+Copyright (c) 2026 Karel Čermák (info@karlosoft.com)
 Permission is hereby granted, free of charge, to any person obtaining a copyof this software and associated documentation files (the "Software"), to dealin the Software without restriction, including without limitation the rightsto use, copy, modify, merge, publish, distribute, sublicense, and/or sellcopies of the Software, and to permit persons to whom the Software isfurnished to do so, subject to the following conditions:
 
 The above copyright notice and this permission notice shall be included inall copies or substantial portions of the Software.
