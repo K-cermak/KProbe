@@ -26,19 +26,16 @@ jobs:
           cd api && GOOS=linux GOARCH=amd64 go build -o ../bin/api-server
           cd ../cli && GOOS=linux GOARCH=amd64 go build -o ../bin/cli
 
+      - name: Install nFPM
+        run: go install github.com/goreleaser/nfpm/v2/cmd/nfpm@latest
+
       - name: Build DEB package
-        uses: goreleaser/nfpm-action@v2
-        with:
-          target: deb
-          packager: deb
+        run: nfpm pkg --packager deb --target .
         env:
           VERSION: ${{ env.VERSION }}
 
       - name: Build RPM package
-        uses: goreleaser/nfpm-action@v2
-        with:
-          target: rpm
-          packager: rpm
+        run: nfpm pkg --packager rpm --target .
         env:
           VERSION: ${{ env.VERSION }}
 
