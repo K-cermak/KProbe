@@ -1,4 +1,4 @@
-module UptimeKumaProbeAPI
+module KProbeAPI
 
 go 1.26.4
 

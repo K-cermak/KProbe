@@ -3,8 +3,8 @@ package cmd
 import (
 	"fmt"
 
-	"UptimeKumaProbeCLI/db"
-	"UptimeKumaProbeCLI/helpers"
+	"KProbeCLI/db"
+	"KProbeCLI/helpers"
 )
 
 func ViewKeys(key string) {

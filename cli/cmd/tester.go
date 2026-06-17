@@ -4,9 +4,9 @@ import (
 	"os/exec"
 	"runtime"
 
-	"UptimeKumaProbeCLI/db"
-	"UptimeKumaProbeCLI/helpers"
-	"UptimeKumaProbeCLI/utils"
+	"KProbeCLI/db"
+	"KProbeCLI/helpers"
+	"KProbeCLI/utils"
 )
 
 func PingTest(address string, timeout string) {

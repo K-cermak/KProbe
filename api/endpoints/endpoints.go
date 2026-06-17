@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"UptimeKumaProbeAPI/db"
-	"UptimeKumaProbeAPI/helpers"
+	"KProbeAPI/db"
+	"KProbeAPI/helpers"
 
 	"github.com/go-chi/chi/v5"
 )

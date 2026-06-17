@@ -3,8 +3,8 @@ package main
 import (
 	"os"
 
-	"UptimeKumaProbeCLI/cmd"
-	"UptimeKumaProbeCLI/helpers"
+	"KProbeCLI/cmd"
+	"KProbeCLI/helpers"
 )
 
 func main() {

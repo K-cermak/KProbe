@@ -5,9 +5,9 @@ import (
 	"log"
 	"net/http"
 
-	"UptimeKumaProbeAPI/db"
-	"UptimeKumaProbeAPI/endpoints"
-	"UptimeKumaProbeAPI/helpers"
+	"KProbeAPI/db"
+	"KProbeAPI/endpoints"
+	"KProbeAPI/helpers"
 
 	"github.com/go-chi/chi/v5"
 )

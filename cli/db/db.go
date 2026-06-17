@@ -6,7 +6,7 @@ import (
 	"os"
 	"time"
 
-	"UptimeKumaProbeCLI/helpers"
+	"KProbeCLI/helpers"
 
 	_ "modernc.org/sqlite"
 )

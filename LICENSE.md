@@ -1,8 +1,4 @@
-#### This project is not affiliated with Uptime Kuma. This is just a simple probe extension for monitoring tool Uptime Kuma.
-
-<br>
-
-##  Uptime Kuma Probe Extension is available under the MIT license
+##  KProbe Extension is available under the MIT license
 
 You can use, distribute, modify it for free. However, the author assumes no responsibility or warranty of any kind.
 

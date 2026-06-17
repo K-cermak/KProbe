@@ -5,7 +5,7 @@ import (
 	"errors"
 	"os"
 
-	"UptimeKumaProbeAPI/helpers"
+	"KProbeAPI/helpers"
 	_ "modernc.org/sqlite"
 )
 

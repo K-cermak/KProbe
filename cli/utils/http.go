@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"UptimeKumaProbeCLI/helpers"
+	"KProbeCLI/helpers"
 )
 
 func CheckHTTP(url string, timeout int, acceptCodes string, keyword string, ignoreSslErrors bool, output bool) bool {

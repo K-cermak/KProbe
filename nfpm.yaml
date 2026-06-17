@@ -3,7 +3,7 @@ arch: "${GOARCH}"
 platform: "linux"
 version: "${VERSION:-0.0.0}"
 maintainer: "Karel Cermak <info@karlosoft.com>"
-description: "Uptime Kuma Probe Extension"
+description: "KProbe Extension"
 license: "MIT"
 vendor: "Karlosoft"
 
