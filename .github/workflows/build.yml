@@ -9,6 +9,10 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        goarch: [amd64, arm64]
+
     steps:
       - uses: actions/checkout@v4
 
@@ -26,12 +30,13 @@ jobs:
       - name: Build Go binaries
         run: |
           mkdir -p bin
-          
-          cd api && GOOS=linux GOARCH=amd64 go build -o ../bin/api-server
+
+          cd api
+          GOOS=linux GOARCH=${{ matrix.goarch }} go build -o ../bin/api-server
           
           cd ../cli
           MODULE_NAME=$(go list -m)
-          GOOS=linux GOARCH=amd64 go build -ldflags "-X '${MODULE_NAME}/cmd.Version=${{ env.VERSION }}'" -o ../bin/cli
+          GOOS=linux GOARCH=${{ matrix.goarch }} go build -ldflags "-X '${MODULE_NAME}/cmd.Version=${{ env.VERSION }}'" -o ../bin/cli
 
       - name: Install nFPM
         run: go install github.com/goreleaser/nfpm/v2/cmd/nfpm@latest
@@ -40,11 +45,13 @@ jobs:
         run: nfpm pkg --packager deb --target .
         env:
           VERSION: ${{ env.VERSION }}
+          GOARCH: ${{ matrix.goarch }}
 
       - name: Build RPM package
         run: nfpm pkg --packager rpm --target .
         env:
           VERSION: ${{ env.VERSION }}
+          GOARCH: ${{ matrix.goarch }}
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4

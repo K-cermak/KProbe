@@ -1,5 +1,5 @@
 name: "kprobe"
-arch: "amd64"
+arch: "${GOARCH}"
 platform: "linux"
 version: "${VERSION:-0.0.0}"
 maintainer: "Karel Cermak <info@karlosoft.com>"
