@@ -80,6 +80,13 @@ func ViewKeys(key string) {
 		fmt.Println("    \033[3mThe maximum payload size (in megabytes) to read during HTTP scans.\033[0m")
 	}
 
+	if key == "all" || key == "output_http_info" {
+		found = true
+		fmt.Println("\033[1m*output_http_info\033[0m")
+		fmt.Println(" -> " + db.GetValue("output_http_info"))
+		fmt.Println("    \033[3mToggles whether detailed HTTP response information (like headers and body) is printed during HTTP tests.\033[0m")
+	}
+
 	if found {
 		fmt.Println("\n\033[3m(values with\033[0m \033[1m*\033[0m \033[3mcan be changed using <kprobe keys set <key> <value>> command)\033[0m")
 	} else {
@@ -141,6 +148,13 @@ func SetKeys(key string, value string) {
 		}
 
 		db.InsertValue("max_http_body_size", value)
+
+	case "output_http_info":
+		if value != "true" && value != "false" {
+			helpers.PrintError(true, "Output HTTP info must be true or false")
+		}
+
+		db.InsertValue("output_http_info", value)
 
 	default:
 		helpers.PrintError(true, "Key "+key+" not found or cannot be changed")

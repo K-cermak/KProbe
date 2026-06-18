@@ -104,6 +104,7 @@ func InitDatabase() {
 	InsertValue("ping_retries", "5")
 	InsertValue("ignore_ssl_errors", "false")
 	InsertValue("max_http_body_size", "10")
+	InsertValue("output_http_info", "false")
 }
 
 func DatabaseVersionCheck() bool {

@@ -13,6 +13,13 @@ import (
 )
 
 func CheckHTTP(url string, timeout int, acceptCodes string, variables []helpers.Variable, expression string, ignoreSslErrors bool, output bool) bool {
+	if output {
+		outputInfoStr := db.GetValue("output_http_info")
+		if outputInfoStr == "false" {
+			output = false
+		}
+	}
+
 	tr := &http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: ignoreSslErrors},
 	}
