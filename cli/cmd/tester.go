@@ -37,7 +37,7 @@ func HttpTest(address string, timeout string) {
 	}
 
 	helpers.PrintInfo("Performing HTTP request to " + address + " with timeout " + timeout + " ms")
-	ret := utils.CheckHTTP(address, count, "", "", ignoreSsl, true)
+	ret := utils.CheckHTTP(address, count, "", nil, "", ignoreSsl, true)
 	if ret {
 		helpers.PrintSuccess("HTTP request successful")
 	} else {
@@ -50,11 +50,12 @@ func ApiTest(testType string) {
 		helpers.PrintError(true, "Invalid type, expected <service> or <http>")
 	}
 
-	if testType == "http" {
+	switch testType {
+	case "http":
 		apiPort := db.GetValue("api_port")
 		HttpTest("http://127.0.0.1:"+apiPort, "5000")
 
-	} else if testType == "service" {
+	case "service":
 		if runtime.GOOS != "linux" {
 			helpers.PrintError(true, "This service testing is only available on Linux")
 		}

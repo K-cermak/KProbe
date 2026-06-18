@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"regexp"
 	"strings"
 
 	"KProbeCLI/db"
@@ -18,9 +19,133 @@ const (
 	TIMEOUT_OUT_OF_RANGE string = "Timeout out of range"
 	INVALID_CODE         string = "Invalid status code"
 	CODE_TOO_LONG        string = "Status code too long"
-	INVALID_KEYWORD      string = "Invalid keyword"
-	KEYWORD_UNSUPPORTED  string = "Keyword is not supported for ping scans"
 )
+
+var varNameRegex = regexp.MustCompile(`^[a-z][a-z0-9_]*$`)
+
+// splitConfigLine splits a config line into parts, treating quoted values as single tokens.
+// Matches the web-editor's splitConfigLine function.
+func splitConfigLine(line string) []string {
+	var parts []string
+	i := 0
+	runes := []rune(line)
+
+	for i < len(runes) {
+		// Skip whitespace
+		if runes[i] == ' ' || runes[i] == '\t' {
+			i++
+			continue
+		}
+
+		var part strings.Builder
+		for i < len(runes) && runes[i] != ' ' && runes[i] != '\t' {
+			if runes[i] == '"' {
+				// Enter quoted value
+				part.WriteRune('"')
+				i++
+				for i < len(runes) && runes[i] != '"' {
+					if runes[i] == '\\' && i+1 < len(runes) && runes[i+1] == '"' {
+						part.WriteString("\\\"")
+						i += 2
+					} else {
+						part.WriteRune(runes[i])
+						i++
+					}
+				}
+				if i < len(runes) {
+					part.WriteRune('"')
+					i++
+				}
+			} else {
+				part.WriteRune(runes[i])
+				i++
+			}
+		}
+
+		if part.Len() > 0 {
+			parts = append(parts, part.String())
+		}
+	}
+
+	return parts
+}
+
+// stripQuotes removes surrounding double quotes from a string
+func stripQuotes(s string) string {
+	if len(s) >= 2 && s[0] == '"' && s[len(s)-1] == '"' {
+		return s[1 : len(s)-1]
+	}
+	return s
+}
+
+// parseConfigLine parses key=value pairs from fields[3:] and returns a Scan
+func parseConfigLine(fields []string) helpers.Scan {
+	scan := helpers.Scan{
+		Name:    fields[0],
+		Type:    fields[1],
+		Address: fields[2],
+		Timeout: 10,
+	}
+
+	var variables []helpers.Variable
+
+	for p := 3; p < len(fields); p++ {
+		part := fields[p]
+		eqIdx := strings.Index(part, "=")
+		if eqIdx == -1 {
+			continue
+		}
+
+		key := part[:eqIdx]
+		value := stripQuotes(part[eqIdx+1:])
+
+		switch {
+		case key == "timeout":
+			t, ok := helpers.StrToInt(value)
+			if ok {
+				scan.Timeout = t
+			}
+
+		case key == "status_code":
+			scan.StatusCode = value
+
+		case key == "expression":
+			scan.Expression = value
+
+		case strings.HasPrefix(key, "var_bool:"):
+			varName := key[len("var_bool:"):]
+			variables = append(variables, helpers.Variable{
+				Name:  varName,
+				Mode:  "bool",
+				Value: value,
+			})
+
+		case strings.HasPrefix(key, "var_json_bool:"):
+			varName := key[len("var_json_bool:"):]
+			variables = append(variables, helpers.Variable{
+				Name:  varName,
+				Mode:  "json",
+				Query: value,
+				As:    "bool",
+			})
+
+		case strings.HasPrefix(key, "var_json_number:"):
+			varName := key[len("var_json_number:"):]
+			variables = append(variables, helpers.Variable{
+				Name:  varName,
+				Mode:  "json",
+				Query: value,
+				As:    "number",
+			})
+		}
+	}
+
+	if len(variables) > 0 {
+		scan.Variables = variables
+	}
+
+	return scan
+}
 
 func VerifyConfig(path string) {
 	helpers.PrintInfo("Verifying config file")
@@ -40,11 +165,11 @@ func VerifyConfig(path string) {
 			continue
 		}
 
-		fields := strings.Fields(line)
+		fields := splitConfigLine(line)
 		if len(fields) == 0 {
 			continue
 		}
-		if len(fields) < 4 {
+		if len(fields) < 3 {
 			helpers.PrintError(true, INVALID_FORMAT)
 		}
 
@@ -63,26 +188,37 @@ func VerifyConfig(path string) {
 			helpers.PrintError(true, "Invalid scan address")
 		}
 
-		scanTimeout := fields[3]
-		scanTimeout = strings.TrimPrefix(scanTimeout, "timeout=")
-		if err := validateTimeout(scanTimeout); err != "" {
-			helpers.PrintError(true, "Invalid scan interval: "+err)
+		// Parse all key=value pairs
+		parsed := parseConfigLine(fields)
+
+		// Validate timeout
+		if errMsg := validateTimeout(helpers.IntToStr(parsed.Timeout)); errMsg != "" {
+			helpers.PrintError(true, "Invalid timeout: "+errMsg)
 		}
 
-		if len(fields) > 4 {
-			if strings.HasPrefix(fields[4], "status_code=") {
-				if scanType == "ping" {
-					helpers.PrintError(true, "Status code is not supported for ping scans")
-				}
-
-				if err := validateStatusCode(fields[4]); err != "" {
-					helpers.PrintError(true, "Invalid status code: "+err)
-				}
+		// Validate status code
+		if parsed.StatusCode != "" {
+			if scanType == "ping" {
+				helpers.PrintError(true, "Status code is not supported for ping scans")
+			}
+			if errMsg := validateStatusCode(parsed.StatusCode); errMsg != "" {
+				helpers.PrintError(true, "Invalid status code: "+errMsg)
 			}
 		}
 
-		if err := validateKeyword(line, scanType); err != "" {
-			helpers.PrintError(true, "Invalid keyword: "+err)
+		// Validate variables and expression (HTTP only)
+		if scanType == "http" {
+			if errMsg := validateVariables(parsed.Variables); errMsg != "" {
+				helpers.PrintError(true, errMsg+" (scan: "+scanName+")")
+			}
+
+			if errMsg := validateExpressionConfig(parsed.Variables, parsed.Expression); errMsg != "" {
+				helpers.PrintError(true, errMsg+" (scan: "+scanName+")")
+			}
+		} else {
+			if len(parsed.Variables) > 0 || parsed.Expression != "" {
+				helpers.PrintError(true, "Variables and expressions are not supported for ping scans (scan: "+scanName+")")
+			}
 		}
 
 		scanNames[scanName] = true
@@ -126,45 +262,10 @@ func SetConfig(path string) {
 			continue
 		}
 
-		fields := strings.Fields(line)
+		fields := splitConfigLine(line)
+		scan := parseConfigLine(fields)
 
-		scanName := fields[0]
-		scanType := fields[1]
-		scanAddress := fields[2]
-
-		scanTimeout := fields[3]
-		scanTimeout = strings.TrimPrefix(scanTimeout, "timeout=")
-		scanTimeoutInt, correct := helpers.StrToInt(scanTimeout)
-		if !correct {
-			helpers.PrintError(true, "Failed to convert timeout to integer")
-		}
-
-		statusCode := ""
-		keyword := ""
-
-		if len(fields) > 4 {
-			if strings.HasPrefix(fields[4], "status_code=") {
-				statusCode = fields[4]
-				statusCode = statusCode[13 : len(statusCode)-1]
-			}
-		}
-
-		startIdx := strings.Index(line, "keyword=\"")
-		if startIdx != -1 {
-			endIdx := strings.LastIndex(line, "\"")
-			keyword = line[startIdx+9 : endIdx]
-		}
-
-		helpers.PrintInfo("Adding scan: " + scanName)
-		scan := helpers.Scan{
-			Name:       scanName,
-			Type:       scanType,
-			Address:    scanAddress,
-			Timeout:    scanTimeoutInt,
-			StatusCode: statusCode,
-			Keyword:    keyword,
-		}
-
+		helpers.PrintInfo("Adding scan: " + scan.Name)
 		db.AddScan(scan)
 
 		db.InsertValue("config_set", "true")
@@ -193,8 +294,19 @@ func ViewConfig() {
 		if scan.StatusCode != "" {
 			fmt.Println(" -> Status code(s): " + scan.StatusCode)
 		}
-		if scan.Keyword != "" {
-			fmt.Println(" -> Keyword: \"" + scan.Keyword + "\"")
+		if len(scan.Variables) > 0 {
+			fmt.Println(" -> Variables:")
+			for _, v := range scan.Variables {
+				switch v.Mode {
+				case "bool":
+					fmt.Println("    - " + v.Name + " (bool): search=\"" + v.Value + "\"")
+				case "json":
+					fmt.Println("    - " + v.Name + " (json, as " + v.As + "): query=\"" + v.Query + "\"")
+				}
+			}
+		}
+		if scan.Expression != "" {
+			fmt.Println(" -> Expression: \"" + scan.Expression + "\"")
 		}
 		fmt.Println()
 	}
@@ -233,9 +345,6 @@ func validateStatusCode(statusCode string) string {
 		return CODE_TOO_LONG
 	}
 
-	statusCode = strings.TrimPrefix(statusCode, "status_code=\"")
-	statusCode = statusCode[:len(statusCode)-1]
-
 	codes := strings.Split(statusCode, ",")
 	if len(codes) == 0 {
 		return INVALID_CODE
@@ -250,20 +359,185 @@ func validateStatusCode(statusCode string) string {
 	return ""
 }
 
-func validateKeyword(line string, scanType string) string {
-	startIdx := strings.Index(line, "keyword=\"")
-	if startIdx == -1 {
-		return ""
-	}
+// validateVariables checks variable definitions for errors
+func validateVariables(variables []helpers.Variable) string {
+	varNames := make(map[string]bool)
 
-	if scanType == "ping" {
-		return KEYWORD_UNSUPPORTED
-	}
+	for _, v := range variables {
+		if v.Name == "" {
+			return "Variable name cannot be empty"
+		}
 
-	endIdx := strings.LastIndex(line, "\"")
-	if endIdx == startIdx {
-		return INVALID_KEYWORD
+		if !varNameRegex.MatchString(v.Name) {
+			return "Variable name \"" + v.Name + "\" is invalid (must start with a letter, contain only lowercase letters, digits, and underscores)"
+		}
+
+		if varNames[v.Name] {
+			return "Duplicate variable name: \"" + v.Name + "\""
+		}
+		varNames[v.Name] = true
+
+		if v.Mode == "bool" && strings.TrimSpace(v.Value) == "" {
+			return "Variable \"" + v.Name + "\" (bool) has an empty search value"
+		}
+
+		if v.Mode == "json" && strings.TrimSpace(v.Query) == "" {
+			return "Variable \"" + v.Name + "\" (json) has an empty JSON query"
+		}
 	}
 
 	return ""
+}
+
+// validateExpressionConfig validates the expression against defined variables
+func validateExpressionConfig(variables []helpers.Variable, expression string) string {
+	expression = strings.TrimSpace(expression)
+
+	if expression == "" && len(variables) > 0 {
+		return "Variables defined but no expression set"
+	}
+
+	if expression == "" {
+		return ""
+	}
+
+	// Build defined variable names set and type map
+	definedVars := make(map[string]bool)
+	varTypes := make(map[string]string) // "bool" or "number"
+	for _, v := range variables {
+		definedVars[v.Name] = true
+		switch v.Mode {
+		case "bool":
+			varTypes[v.Name] = "bool"
+		case "json":
+			if v.As == "number" {
+				varTypes[v.Name] = "number"
+			} else {
+				varTypes[v.Name] = "bool"
+			}
+		}
+	}
+
+	// Tokenize
+	tokens, err := tokenizeExpression(expression)
+	if err != "" {
+		return "Expression error: " + err
+	}
+
+	// Check balanced parentheses
+	depth := 0
+	for _, t := range tokens {
+		if t == "(" {
+			depth++
+		}
+		if t == ")" {
+			depth--
+		}
+		if depth < 0 {
+			return "Unbalanced parentheses: extra closing ')'"
+		}
+	}
+	if depth > 0 {
+		return "Unbalanced parentheses: missing closing ')'"
+	}
+
+	// Check identifiers reference defined variables and type correctness
+	comparisonOps := map[string]bool{">": true, "<": true, ">=": true, "<=": true, "==": true, "!=": true}
+
+	for i, t := range tokens {
+		if varNameRegex.MatchString(t) {
+			if !definedVars[t] {
+				return "Undefined variable: \"" + t + "\""
+			}
+
+			prevToken := ""
+			nextToken := ""
+			if i > 0 {
+				prevToken = tokens[i-1]
+			}
+			if i+1 < len(tokens) {
+				nextToken = tokens[i+1]
+			}
+
+			switch varTypes[t] {
+			case "bool":
+				if comparisonOps[prevToken] || comparisonOps[nextToken] {
+					return "Variable \"" + t + "\" is bool and cannot be used with comparison operators"
+				}
+			case "number":
+				if !comparisonOps[prevToken] && !comparisonOps[nextToken] {
+					return "Variable \"" + t + "\" is a number and must be used with a comparison operator (e.g. " + t + " > 0)"
+				}
+			}
+		}
+	}
+
+	return ""
+}
+
+// tokenizeExpression tokenizes an expression string into tokens for validation.
+// Returns tokens and an error message (empty string on success).
+func tokenizeExpression(expr string) ([]string, string) {
+	var tokens []string
+	i := 0
+	s := []rune(strings.TrimSpace(expr))
+
+	for i < len(s) {
+		// Whitespace
+		if s[i] == ' ' || s[i] == '\t' || s[i] == '\n' || s[i] == '\r' {
+			i++
+			continue
+		}
+
+		// Parentheses
+		if s[i] == '(' || s[i] == ')' {
+			tokens = append(tokens, string(s[i]))
+			i++
+			continue
+		}
+
+		// Two-character operators
+		if i+1 < len(s) {
+			two := string(s[i : i+2])
+			if two == "&&" || two == "||" || two == ">=" || two == "<=" || two == "==" || two == "!=" {
+				tokens = append(tokens, two)
+				i += 2
+				continue
+			}
+		}
+
+		// Single-character operators
+		if s[i] == '!' || s[i] == '>' || s[i] == '<' {
+			tokens = append(tokens, string(s[i]))
+			i++
+			continue
+		}
+
+		// Numeric literals (including negative numbers and decimals)
+		if (s[i] >= '0' && s[i] <= '9') || (s[i] == '-' && i+1 < len(s) && s[i+1] >= '0' && s[i+1] <= '9') {
+			start := i
+			if s[i] == '-' {
+				i++
+			}
+			for i < len(s) && ((s[i] >= '0' && s[i] <= '9') || s[i] == '.') {
+				i++
+			}
+			tokens = append(tokens, string(s[start:i]))
+			continue
+		}
+
+		// Identifiers (variable names)
+		if (s[i] >= 'a' && s[i] <= 'z') || s[i] == '_' {
+			start := i
+			for i < len(s) && ((s[i] >= 'a' && s[i] <= 'z') || (s[i] >= '0' && s[i] <= '9') || s[i] == '_') {
+				i++
+			}
+			tokens = append(tokens, string(s[start:i]))
+			continue
+		}
+
+		return nil, "Unexpected character '" + string(s[i]) + "' at position " + helpers.IntToStr(i+1)
+	}
+
+	return tokens, ""
 }

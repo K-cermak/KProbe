@@ -96,10 +96,11 @@ func CronStart(command string) {
 			helpers.PrintInfo("Starting scan " + s.Name)
 
 			var result bool
-			if s.Type == "ping" {
+			switch s.Type {
+			case "ping":
 				result = utils.PingAddress(s.Address, s.Timeout, false)
-			} else if s.Type == "http" {
-				result = utils.CheckHTTP(s.Address, s.Timeout, s.StatusCode, s.Keyword, ignoreSsl, false)
+			case "http":
+				result = utils.CheckHTTP(s.Address, s.Timeout, s.StatusCode, s.Variables, s.Expression, ignoreSsl, false)
 			}
 
 			helpers.PrintSuccess("Scan " + s.Name + " finished (" + helpers.BoolToState(result) + ")")

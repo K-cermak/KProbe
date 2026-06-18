@@ -2,6 +2,7 @@ package db
 
 import (
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"os"
 	"time"
@@ -67,7 +68,8 @@ func InitDatabase() {
 		address VARCHAR(256) NOT NULL,
 		timeout INTEGER,
 		status_code VARCHAR(256),
-		keyword TEXT
+		variables TEXT,
+		expression TEXT
 	);`
 
 	_, err = DB.Exec(createTableQuery)
@@ -185,7 +187,7 @@ func GetScans() []helpers.Scan {
 	var scans []helpers.Scan
 
 	query := `
-	SELECT name, type, address, timeout, status_code, keyword
+	SELECT name, type, address, timeout, status_code, variables, expression
 	FROM scans;
 	`
 
@@ -196,10 +198,23 @@ func GetScans() []helpers.Scan {
 
 	for rows.Next() {
 		var scan helpers.Scan
+		var variablesJSON sql.NullString
+		var expression sql.NullString
 
-		err = rows.Scan(&scan.Name, &scan.Type, &scan.Address, &scan.Timeout, &scan.StatusCode, &scan.Keyword)
+		err = rows.Scan(&scan.Name, &scan.Type, &scan.Address, &scan.Timeout, &scan.StatusCode, &variablesJSON, &expression)
 		if err != nil {
 			helpers.PrintError(true, "Failed to scan data from database ("+err.Error()+")")
+		}
+
+		if variablesJSON.Valid && variablesJSON.String != "" {
+			err = json.Unmarshal([]byte(variablesJSON.String), &scan.Variables)
+			if err != nil {
+				helpers.PrintError(true, "Failed to parse variables JSON ("+err.Error()+")")
+			}
+		}
+
+		if expression.Valid {
+			scan.Expression = expression.String
 		}
 
 		scans = append(scans, scan)
@@ -213,12 +228,21 @@ func AddScan(scan helpers.Scan) {
 		connectDatabase()
 	}
 
+	variablesJSON := ""
+	if len(scan.Variables) > 0 {
+		jsonBytes, err := json.Marshal(scan.Variables)
+		if err != nil {
+			helpers.PrintError(true, "Failed to serialize variables ("+err.Error()+")")
+		}
+		variablesJSON = string(jsonBytes)
+	}
+
 	insertQuery := `
-	INSERT INTO scans (name, type, address, timeout, status_code, keyword) 
-	VALUES (?, ?, ?, ?, ?, ?);
+	INSERT INTO scans (name, type, address, timeout, status_code, variables, expression) 
+	VALUES (?, ?, ?, ?, ?, ?, ?);
 	`
 
-	_, err := DB.Exec(insertQuery, scan.Name, scan.Type, scan.Address, scan.Timeout, scan.StatusCode, scan.Keyword)
+	_, err := DB.Exec(insertQuery, scan.Name, scan.Type, scan.Address, scan.Timeout, scan.StatusCode, variablesJSON, scan.Expression)
 	if err != nil {
 		helpers.PrintError(true, "Failed to insert data into database ("+err.Error()+")")
 	}
