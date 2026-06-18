@@ -3,6 +3,7 @@ package endpoints
 import (
 	"encoding/json"
 	"net/http"
+	"os"
 
 	"KProbeAPI/db"
 	"KProbeAPI/helpers"
@@ -19,7 +20,19 @@ type StatusResponse struct {
 }
 
 func ServeEditor(w http.ResponseWriter, r *http.Request) {
-	// htmlPath := "../../web-editor/editor.html" //FOR TESTING, CHANGE TO BELOW
+	// if html file is not found, return 404
+	_, err := os.Stat("/opt/kprobe/editor.html")
+	if os.IsNotExist(err) {
+		w.WriteHeader(http.StatusNotFound)
+		w.Header().Set("Content-Type", "application/json")
+		jsonResponse := map[string]interface{}{
+			"error":   404,
+			"message": "Editor not found",
+		}
+		json.NewEncoder(w).Encode(jsonResponse)
+		return
+	}
+
 	htmlPath := "/opt/kprobe/editor.html"
 	http.ServeFile(w, r, htmlPath)
 }
