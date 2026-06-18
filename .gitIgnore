@@ -1,6 +1,7 @@
 .DS_Store
 /private
 /TODO.md
+db.sqlite
 
 # Binaries for programs and plugins
 *.exe

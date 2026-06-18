@@ -53,21 +53,20 @@ func ApiTest(testType string) {
 	switch testType {
 	case "http":
 		apiPort := db.GetValue("api_port")
-		HttpTest("http://127.0.0.1:"+apiPort, "5000")
+		HttpTest("http://127.0.0.1:" + apiPort, "5000")
 
 	case "service":
 		if runtime.GOOS != "linux" {
-			helpers.PrintError(true, "This service testing is only available on Linux")
+			helpers.PrintError(true, "This action is only available on Linux")
 		}
 
 		cmd := exec.Command("systemctl", "is-active", "kprobe")
 		output, err := cmd.CombinedOutput()
-		if err != nil {
-			helpers.PrintError(true, "Failed to check service status ("+err.Error()+")")
-		}
 
 		if string(output) == "active\n" {
 			helpers.PrintSuccess("Service is active")
+		} else if err != nil {
+			helpers.PrintWarning("Service is not active or systemctl failed (" + err.Error() + ")")
 		} else {
 			helpers.PrintWarning("Service is not active")
 		}
@@ -76,13 +75,17 @@ func ApiTest(testType string) {
 
 func ApiRestart() {
 	if runtime.GOOS != "linux" {
-		helpers.PrintError(true, "This service testing is only available on Linux")
+		helpers.PrintError(true, "This action is only available on Linux")
 	}
 
 	cmd := exec.Command("systemctl", "restart", "kprobe")
-	err := cmd.Run()
+	output, err := cmd.CombinedOutput()
 	if err != nil {
-		helpers.PrintError(true, "Failed to restart service ("+err.Error()+"). Tip: Use 'sudo' to run the command")
+		errMsg := "Failed to restart service (" + err.Error() + "). Tip: Use 'sudo' to run the command."
+		if len(output) > 0 {
+			errMsg += "\nOutput: " + string(output)
+		}
+		helpers.PrintError(true, errMsg)
 	}
 
 	helpers.PrintSuccess("Service restarted")
