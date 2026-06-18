@@ -54,7 +54,7 @@
 
 - The editor is straightforward to use — all the necessary information is provided within it. To download the configuration file, click on the **"Verify Values"** button and then on **"Download Config"**. To reload an existing configuration file, click on **"Load Config"**.
 
-<img src="https://cdn.karlosoft.com/cdn-data/ks/img/kprobe/editor.png" width="700" alt="KProbe Editor">
+<img src="https://cdn.karlosoft.com/cdn-data/ks/img/kprobe/editor2.png" width="700" alt="KProbe Editor">
 
 
 
