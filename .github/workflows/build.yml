@@ -45,8 +45,6 @@ jobs:
         run: |
           cd web-editor
           python3 -c '
-          import re
-
           with open("index.html") as f:
               html = f.read()
 
@@ -54,10 +52,8 @@ jobs:
               with open(js) as f:
                   content = f.read()
 
-              if re.search(f"<script[^>]*src=\"{js}\"[^>]*defer[^>]*></script>", html):
-                  content = f"document.addEventListener(\"DOMContentLoaded\", function() {{\n{content}\n}});"
-
-              html = re.sub(f"<script[^>]*src=\"{js}\"[^>]*></script>", f"<script>\n{content}\n</script>", html)
+              html = html.replace(f"<script src=\"{js}\"></script>", f"<script>\n{content}\n</script>")
+              html = html.replace(f"<script src=\"{js}\" defer></script>", f"<script>\n{content}\n</script>")
 
           with open("editor.html", "w") as f:
               f.write(html)
