@@ -12,8 +12,8 @@ import (
 	_ "modernc.org/sqlite"
 )
 
-// const dbPath = "db.sqlite" //FOR TESTING, CHANGE TO BELOW
-const dbPath = "/opt/kprobe/db.sqlite"
+// Default for testing. Override in build process using: go build -ldflags "-X KProbeCLI/db.dbPath=/opt/kprobe/db.sqlite"
+var dbPath = "db.sqlite"
 const dbVersion = "v1.1"
 
 var DB *sql.DB

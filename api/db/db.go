@@ -16,8 +16,8 @@ const (
 	RES_OK                string = "OK"
 )
 
-// const dbPath = "../cli/db.sqlite" //FOR TESTING, CHANGE TO BELOW
-const dbPath = "/opt/kprobe/db.sqlite"
+// Default for testing. Override in build process using: go build -ldflags "-X KProbeAPI/db.dbPath=/opt/kprobe/db.sqlite"
+var dbPath = "../cli/db.sqlite"
 
 func getDatabaseConnection() (*sql.DB) {
 	if !databaseExist() {

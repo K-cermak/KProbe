@@ -32,11 +32,12 @@ jobs:
           mkdir -p bin
 
           cd api
-          GOOS=linux GOARCH=${{ matrix.goarch }} go build -o ../bin/api-server
+          API_MODULE_NAME=$(go list -m)
+          GOOS=linux GOARCH=${{ matrix.goarch }} go build -ldflags "-X '${API_MODULE_NAME}/db.dbPath=/opt/kprobe/db.sqlite'" -o ../bin/api-server
           
           cd ../cli
           MODULE_NAME=$(go list -m)
-          GOOS=linux GOARCH=${{ matrix.goarch }} go build -ldflags "-X '${MODULE_NAME}/cmd.Version=${{ env.VERSION }}'" -o ../bin/cli
+          GOOS=linux GOARCH=${{ matrix.goarch }} go build -ldflags "-X '${MODULE_NAME}/cmd.Version=${{ env.VERSION }}' -X '${MODULE_NAME}/db.dbPath=/opt/kprobe/db.sqlite'" -o ../bin/cli
 
       - name: Install nFPM
         run: go install github.com/goreleaser/nfpm/v2/cmd/nfpm@latest
