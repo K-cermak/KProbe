@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"KProbeCLI/db"
 	"KProbeCLI/helpers"
 )
 
@@ -30,7 +31,13 @@ func CheckHTTP(url string, timeout int, acceptCodes string, variables []helpers.
 	}
 	defer resp.Body.Close()
 
-	body, err := io.ReadAll(io.LimitReader(resp.Body, 10*1024*1024))
+	maxBodySizeStr := db.GetValue("max_http_body_size")
+	maxBodySizeMB, correct := helpers.StrToInt(maxBodySizeStr)
+	if !correct {
+		maxBodySizeMB = 10 // Fallback to 10 MB if the value in DB is invalid
+	}
+
+	body, err := io.ReadAll(io.LimitReader(resp.Body, int64(maxBodySizeMB)*1024*1024))
 	if err != nil {
 		if output {
 			helpers.PrintError(false, "Error reading response body ("+err.Error()+")")
