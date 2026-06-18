@@ -30,7 +30,7 @@ func CheckHTTP(url string, timeout int, acceptCodes string, variables []helpers.
 	}
 	defer resp.Body.Close()
 
-	body, err := io.ReadAll(resp.Body)
+	body, err := io.ReadAll(io.LimitReader(resp.Body, 10*1024*1024))
 	if err != nil {
 		if output {
 			helpers.PrintError(false, "Error reading response body ("+err.Error()+")")
@@ -44,7 +44,7 @@ func CheckHTTP(url string, timeout int, acceptCodes string, variables []helpers.
 		for _, code := range acceptCodesArray {
 			codeInt, correct := helpers.StrToInt(code)
 			if !correct {
-				helpers.PrintError(true, "Invalid status code value")
+				helpers.PrintError(false, "Invalid status code value")
 			}
 
 			if resp.StatusCode == codeInt {
