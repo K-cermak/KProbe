@@ -49,7 +49,7 @@ func ServeStatus(w http.ResponseWriter, r *http.Request, probeName string) {
 			"probe_name": probeName,
 			"time":      helpers.GetCurrTime(),
 			"error":     404,
-			"message":   "Not found, maybe scan with this name does not exist",
+			"message":   "Not found, probably scan with this name does not exist",
 		}
 		json.NewEncoder(w).Encode(jsonResponse)
 		return
