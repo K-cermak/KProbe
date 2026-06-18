@@ -100,6 +100,9 @@ func parseConfigLine(fields []string) helpers.Scan {
 		value := stripQuotes(part[eqIdx+1:])
 
 		switch {
+		case key == "keyword":
+			helpers.PrintError(true, "Configuration contains the legacy 'keyword' parameter. Old configurations cannot be used in KProbe 2.0.0; please use the new configuration editor to migrate your settings.")
+
 		case key == "timeout":
 			t, ok := helpers.StrToInt(value)
 			if ok {

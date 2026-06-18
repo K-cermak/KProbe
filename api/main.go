@@ -18,8 +18,8 @@ func main() {
 	port, ok := db.GetValue("api_port")
 	if ok != db.RES_OK {
 		helpers.PrintError("Failed to get API port from database (" + ok + ")")
-		helpers.PrintWarning("Using default port 8080")
-		port = "8080"
+		helpers.PrintWarning("Using default port 80")
+		port = "80"
 	}
 
 	ProbeName, ok = db.GetValue("probe_name")
