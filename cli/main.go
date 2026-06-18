@@ -10,9 +10,9 @@ import (
 func main() {
 	args := os.Args
 
-	// cron <type>
-	if helpers.ArgsMatch(args, []string{"*", "cron", "*"}) {
-		cmd.CronStart(args[2])
+	// scan <type>
+	if helpers.ArgsMatch(args, []string{"*", "scan", "*"}) {
+		cmd.ScanStart(args[2])
 		return
 	}
 

@@ -20,11 +20,11 @@ func PrintHelp() {
 	fmt.Println("\n\033[1mUsage: kprobe <command>\033[0m")
 	fmt.Println("\n\033[1mCommands:\033[0m")
 
-	fmt.Println(" \033[1m-> cron <type>\033[0m")
-	fmt.Println("    \033[3mStart the cron job with the specified type.\033[0m")
-	fmt.Println("    \033[3mUse 'all' to start all cron jobs.\033[0m")
-	fmt.Println("    \033[3mUse 'all_except:<names>' to start all cron jobs except the specified ones (seperate names with comma without space).\033[0m")
-	fmt.Println("    \033[3mUse 'only:<names>' to start only the specified cron jobs (seperate names with comma without space).\033[0m")
+	fmt.Println(" \033[1m-> scan <type>\033[0m")
+	fmt.Println("    \033[3mStart a single pass of the scans with the specified type.\033[0m")
+	fmt.Println("    \033[3mUse 'all' to start all scans.\033[0m")
+	fmt.Println("    \033[3mUse 'all_except:<names>' to start all scans except the specified ones (separate names with comma without space).\033[0m")
+	fmt.Println("    \033[3mUse 'only:<names>' to start only the specified scans (separate names with comma without space).\033[0m")
 
 	fmt.Println("\n \033[1m-> state\033[0m")
 	fmt.Println("    \033[3mView the current state of the scans.\033[0m")

@@ -9,7 +9,7 @@ import (
 	"KProbeCLI/utils"
 )
 
-func CronStart(command string) {
+func ScanStart(command string) {
 	scansSlice := db.GetScans()
 	scansMap := make(map[string]bool)
 
@@ -56,7 +56,7 @@ func CronStart(command string) {
 		}
 
 	} else {
-		helpers.PrintError(true, "Invalid cron command")
+		helpers.PrintError(true, "Invalid scan command")
 	}
 
 	scanCount := 0
@@ -68,10 +68,10 @@ func CronStart(command string) {
 	}
 
 	if scanCount == 0 {
-		helpers.PrintError(true, "No scans selected for cron job")
+		helpers.PrintError(true, "No scans selected for execution")
 	}
 
-	helpers.PrintInfo("Starting cron job for " + helpers.IntToStr(scanCount) + " scan(s)")
+	helpers.PrintInfo("Starting execution for " + helpers.IntToStr(scanCount) + " scan(s)")
 
 	ignoreSslStr := db.GetValue("ignore_ssl_errors")
 	ignoreSsl := false
