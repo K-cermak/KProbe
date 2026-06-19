@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	"UptimeKumaProbeCLI/db"
-	"UptimeKumaProbeCLI/helpers"
+	"KProbeCLI/db"
+	"KProbeCLI/helpers"
 
 	"github.com/prometheus-community/pro-bing"
 )

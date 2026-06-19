@@ -5,9 +5,9 @@ import (
 	"log"
 	"net/http"
 
-	"UptimeKumaProbeAPI/db"
-	"UptimeKumaProbeAPI/endpoints"
-	"UptimeKumaProbeAPI/helpers"
+	"KProbeAPI/db"
+	"KProbeAPI/endpoints"
+	"KProbeAPI/helpers"
 
 	"github.com/go-chi/chi/v5"
 )
@@ -18,8 +18,8 @@ func main() {
 	port, ok := db.GetValue("api_port")
 	if ok != db.RES_OK {
 		helpers.PrintError("Failed to get API port from database (" + ok + ")")
-		helpers.PrintWarning("Using default port 8080")
-		port = "8080"
+		helpers.PrintWarning("Using default port 80")
+		port = "80"
 	}
 
 	ProbeName, ok = db.GetValue("probe_name")

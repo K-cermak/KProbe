@@ -1,0 +1,85 @@
+name: Build Packages
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        goarch: [amd64, arm64]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.26'
+
+      - name: Set dynamic version
+        run: |
+          FILE_VER=$(cat VERSION | xargs)
+          BRANCH_NAME="${{ github.ref_name }}"
+          echo "VERSION=${BRANCH_NAME}_${FILE_VER}" >> $GITHUB_ENV
+          echo "PKG_BASE_VERSION=${FILE_VER}" >> $GITHUB_ENV
+          echo "PKG_PRERELEASE=${BRANCH_NAME}" >> $GITHUB_ENV
+
+      - name: Build Go binaries
+        run: |
+          mkdir -p bin
+
+          cd api
+          API_MODULE_NAME=$(go list -m)
+          GOOS=linux GOARCH=${{ matrix.goarch }} go build -ldflags "-X '${API_MODULE_NAME}/db.dbPath=/opt/kprobe/db.sqlite'" -o ../bin/api-server
+          
+          cd ../cli
+          MODULE_NAME=$(go list -m)
+          GOOS=linux GOARCH=${{ matrix.goarch }} go build -ldflags "-X '${MODULE_NAME}/cmd.Version=${{ env.VERSION }}' -X '${MODULE_NAME}/db.dbPath=/opt/kprobe/db.sqlite'" -o ../bin/cli
+
+      - name: Install nFPM
+        run: go install github.com/goreleaser/nfpm/v2/cmd/nfpm@latest
+
+      - name: Inline JS into HTML
+        run: |
+          cd web-editor
+          python3 -c '
+          with open("index.html") as f:
+              html = f.read()
+
+          for js in ["config.js", "script.js", "modals.js"]:
+              with open(js) as f:
+                  content = f.read()
+
+              html = html.replace(f"<script src=\"{js}\"></script>", f"<script>\n{content}\n</script>")
+              html = html.replace(f"<script src=\"{js}\" defer></script>", f"<script>\n{content}\n</script>")
+
+          with open("editor.html", "w") as f:
+              f.write(html)
+          '
+
+      - name: Build DEB package
+        run: nfpm pkg --packager deb --target .
+        env:
+          PKG_BASE_VERSION: ${{ env.PKG_BASE_VERSION }}
+          PKG_PRERELEASE: ${{ env.PKG_PRERELEASE }}
+          GOARCH: ${{ matrix.goarch }}
+
+      - name: Build RPM package
+        run: nfpm pkg --packager rpm --target .
+        env:
+          PKG_BASE_VERSION: ${{ env.PKG_BASE_VERSION }}
+          PKG_PRERELEASE: ${{ env.PKG_PRERELEASE }}
+          GOARCH: ${{ matrix.goarch }}
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: kprobe-${{ github.ref_name }}-packages-${{ matrix.goarch }}
+          path: |
+            *.deb
+            *.rpm

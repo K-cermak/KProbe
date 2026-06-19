@@ -2,17 +2,20 @@ package db
 
 import (
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"os"
+	"path/filepath"
 	"time"
 
-	"UptimeKumaProbeCLI/helpers"
+	"KProbeCLI/helpers"
 
 	_ "modernc.org/sqlite"
 )
 
-// const dbPath = "db.sqlite" //FOR TESTING, CHANGE TO BELOW
-const dbPath = "/opt/kprobe/db.sqlite"
+// Default for testing. Override in build process using: go build -ldflags "-X KProbeCLI/db.dbPath=/opt/kprobe/db.sqlite"
+var dbPath = "db.sqlite"
+const dbVersion = "v1.1"
 
 var DB *sql.DB
 
@@ -26,6 +29,10 @@ func connectDatabase() {
 	DB, err = sql.Open("sqlite", dbPath)
 	if err != nil {
 		helpers.PrintError(true, "Failed to connect to database ("+err.Error()+")")
+	}
+
+	if !DatabaseVersionCheck() {
+		helpers.PrintError(true, "Database version mismatch, you probably upgraded the application. Run <kprobe db reset> to reinitialize the database. Migration of the database is not supported.")
 	}
 }
 
@@ -62,7 +69,8 @@ func InitDatabase() {
 		address VARCHAR(256) NOT NULL,
 		timeout INTEGER,
 		status_code VARCHAR(256),
-		keyword TEXT
+		variables TEXT,
+		expression TEXT
 	);`
 
 	_, err = DB.Exec(createTableQuery)
@@ -85,7 +93,7 @@ func InitDatabase() {
 	}
 
 	InsertValue("probe_name", "New Probe")
-	InsertValue("db_version", "v1.0")
+	InsertValue("db_version", dbVersion)
 	InsertValue("db_init_time", time.Now().String())
 
 	InsertValue("config_set", "false")
@@ -96,7 +104,45 @@ func InitDatabase() {
 
 	InsertValue("ping_retries", "5")
 	InsertValue("ignore_ssl_errors", "false")
+	InsertValue("max_http_body_size", "10")
+	InsertValue("output_http_info", "false")
+
+	// Set file permissions so both root (API server) and non-root users (CLI) can access the DB
+	err = os.Chmod(dbPath, 0666)
+	if err != nil {
+		helpers.PrintError(true, "Failed to set database permissions ("+err.Error()+")")
+	}
+
+	// SQLite also needs write access to the directory for journal/WAL files
+	dbDir := filepath.Dir(dbPath)
+	err = os.Chmod(dbDir, 0777)
+	if err != nil {
+		helpers.PrintError(true, "Failed to set database directory permissions ("+err.Error()+")")
+	}
 }
+
+func DatabaseVersionCheck() bool {
+	if DB == nil {
+		connectDatabase()
+	}
+
+	var dbRealVersion string
+	
+	query := `
+	SELECT value
+	FROM keys
+	WHERE name = 'db_version';
+	`
+
+	err := DB.QueryRow(query).Scan(&dbRealVersion)
+	if err != nil {
+		helpers.PrintError(true, "Failed to get database version ("+err.Error()+")")
+	}
+
+	return dbRealVersion == dbVersion
+}
+
+
 
 func DatabaseExist() bool {
 	if _, err := os.Stat(dbPath); err == nil {
@@ -157,7 +203,7 @@ func GetScans() []helpers.Scan {
 	var scans []helpers.Scan
 
 	query := `
-	SELECT name, type, address, timeout, status_code, keyword
+	SELECT name, type, address, timeout, status_code, variables, expression
 	FROM scans;
 	`
 
@@ -168,10 +214,23 @@ func GetScans() []helpers.Scan {
 
 	for rows.Next() {
 		var scan helpers.Scan
+		var variablesJSON sql.NullString
+		var expression sql.NullString
 
-		err = rows.Scan(&scan.Name, &scan.Type, &scan.Address, &scan.Timeout, &scan.StatusCode, &scan.Keyword)
+		err = rows.Scan(&scan.Name, &scan.Type, &scan.Address, &scan.Timeout, &scan.StatusCode, &variablesJSON, &expression)
 		if err != nil {
 			helpers.PrintError(true, "Failed to scan data from database ("+err.Error()+")")
+		}
+
+		if variablesJSON.Valid && variablesJSON.String != "" {
+			err = json.Unmarshal([]byte(variablesJSON.String), &scan.Variables)
+			if err != nil {
+				helpers.PrintError(true, "Failed to parse variables JSON ("+err.Error()+")")
+			}
+		}
+
+		if expression.Valid {
+			scan.Expression = expression.String
 		}
 
 		scans = append(scans, scan)
@@ -185,12 +244,21 @@ func AddScan(scan helpers.Scan) {
 		connectDatabase()
 	}
 
+	variablesJSON := ""
+	if len(scan.Variables) > 0 {
+		jsonBytes, err := json.Marshal(scan.Variables)
+		if err != nil {
+			helpers.PrintError(true, "Failed to serialize variables ("+err.Error()+")")
+		}
+		variablesJSON = string(jsonBytes)
+	}
+
 	insertQuery := `
-	INSERT INTO scans (name, type, address, timeout, status_code, keyword) 
-	VALUES (?, ?, ?, ?, ?, ?);
+	INSERT INTO scans (name, type, address, timeout, status_code, variables, expression) 
+	VALUES (?, ?, ?, ?, ?, ?, ?);
 	`
 
-	_, err := DB.Exec(insertQuery, scan.Name, scan.Type, scan.Address, scan.Timeout, scan.StatusCode, scan.Keyword)
+	_, err := DB.Exec(insertQuery, scan.Name, scan.Type, scan.Address, scan.Timeout, scan.StatusCode, variablesJSON, scan.Expression)
 	if err != nil {
 		helpers.PrintError(true, "Failed to insert data into database ("+err.Error()+")")
 	}

@@ -3,9 +3,10 @@ package endpoints
 import (
 	"encoding/json"
 	"net/http"
+	"os"
 
-	"UptimeKumaProbeAPI/db"
-	"UptimeKumaProbeAPI/helpers"
+	"KProbeAPI/db"
+	"KProbeAPI/helpers"
 
 	"github.com/go-chi/chi/v5"
 )
@@ -19,7 +20,19 @@ type StatusResponse struct {
 }
 
 func ServeEditor(w http.ResponseWriter, r *http.Request) {
-	// htmlPath := "../../web-editor/editor.html" //FOR TESTING, CHANGE TO BELOW
+	// if html file is not found, return 404
+	_, err := os.Stat("/opt/kprobe/editor.html")
+	if os.IsNotExist(err) {
+		w.WriteHeader(http.StatusNotFound)
+		w.Header().Set("Content-Type", "application/json")
+		jsonResponse := map[string]interface{}{
+			"error":   404,
+			"message": "Editor not found",
+		}
+		json.NewEncoder(w).Encode(jsonResponse)
+		return
+	}
+
 	htmlPath := "/opt/kprobe/editor.html"
 	http.ServeFile(w, r, htmlPath)
 }
@@ -49,7 +62,7 @@ func ServeStatus(w http.ResponseWriter, r *http.Request, probeName string) {
 			"probe_name": probeName,
 			"time":      helpers.GetCurrTime(),
 			"error":     404,
-			"message":   "Not found, maybe scan with this name does not exist",
+			"message":   "Not found, probably scan with this name does not exist",
 		}
 		json.NewEncoder(w).Encode(jsonResponse)
 		return

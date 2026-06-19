@@ -1,0 +1,36 @@
+name: "kprobe"
+arch: "${GOARCH}"
+platform: "linux"
+version: "${PKG_BASE_VERSION}"
+prerelease: "${PKG_PRERELEASE}"
+maintainer: "Karel Cermak <info@karlosoft.com>"
+description: "KProbe Extension"
+license: "MIT"
+vendor: "Karlosoft"
+
+contents:
+  - src: ./bin/api-server
+    dst: /opt/kprobe/api-server
+    file_info:
+      mode: 0755
+  - src: ./bin/cli
+    dst: /opt/kprobe/cli
+    file_info:
+      mode: 0755
+  - src: ./web-editor/editor.html
+    dst: /opt/kprobe/editor.html
+    file_info:
+      mode: 0644
+  - src: ./package/kprobe.service
+    dst: /etc/systemd/system/kprobe.service
+  - src: ./package/99-ping.conf
+    dst: /etc/sysctl.d/99-ping.conf
+
+  - src: /opt/kprobe/cli
+    dst: /usr/local/bin/kprobe
+    type: symlink
+
+scripts:
+  postinstall: ./package/scripts/postinst.sh
+  preremove: ./package/scripts/prerm.sh
+  postremove: ./package/scripts/postrm.sh

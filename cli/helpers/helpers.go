@@ -5,13 +5,22 @@ import (
 	"strconv"
 )
 
+type Variable struct {
+	Name  string `json:"name"`
+	Mode  string `json:"mode"`            // "bool" or "json"
+	Value string `json:"value,omitempty"` // for mode="bool": the search string
+	Query string `json:"query,omitempty"` // for mode="json": the JSON path (e.g. "$.data.temperature")
+	As    string `json:"as,omitempty"`    // for mode="json": "bool" or "number"
+}
+
 type Scan struct {
 	Name       string
 	Type       string
 	Address    string
 	Timeout    int
 	StatusCode string
-	Keyword    string
+	Variables  []Variable
+	Expression string
 }
 
 type ScanRes struct {

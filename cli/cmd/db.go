@@ -5,8 +5,8 @@ import (
 	"os"
 	"strings"
 
-	"UptimeKumaProbeCLI/db"
-	"UptimeKumaProbeCLI/helpers"
+	"KProbeCLI/db"
+	"KProbeCLI/helpers"
 )
 
 func InitDatabase() {

@@ -8,10 +8,18 @@ import (
 	"strings"
 	"time"
 
-	"UptimeKumaProbeCLI/helpers"
+	"KProbeCLI/db"
+	"KProbeCLI/helpers"
 )
 
-func CheckHTTP(url string, timeout int, acceptCodes string, keyword string, ignoreSslErrors bool, output bool) bool {
+func CheckHTTP(url string, timeout int, acceptCodes string, variables []helpers.Variable, expression string, ignoreSslErrors bool, output bool) bool {
+	if output {
+		outputInfoStr := db.GetValue("output_http_info")
+		if outputInfoStr == "false" {
+			output = false
+		}
+	}
+
 	tr := &http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: ignoreSslErrors},
 	}
@@ -30,7 +38,13 @@ func CheckHTTP(url string, timeout int, acceptCodes string, keyword string, igno
 	}
 	defer resp.Body.Close()
 
-	body, err := io.ReadAll(resp.Body)
+	maxBodySizeStr := db.GetValue("max_http_body_size")
+	maxBodySizeMB, correct := helpers.StrToInt(maxBodySizeStr)
+	if !correct {
+		maxBodySizeMB = 10 // Fallback to 10 MB if the value in DB is invalid
+	}
+
+	body, err := io.ReadAll(io.LimitReader(resp.Body, int64(maxBodySizeMB)*1024*1024))
 	if err != nil {
 		if output {
 			helpers.PrintError(false, "Error reading response body ("+err.Error()+")")
@@ -44,7 +58,7 @@ func CheckHTTP(url string, timeout int, acceptCodes string, keyword string, igno
 		for _, code := range acceptCodesArray {
 			codeInt, correct := helpers.StrToInt(code)
 			if !correct {
-				helpers.PrintError(true, "Invalid timeout value")
+				helpers.PrintError(false, "Invalid status code value")
 			}
 
 			if resp.StatusCode == codeInt {
@@ -65,10 +79,27 @@ func CheckHTTP(url string, timeout int, acceptCodes string, keyword string, igno
 	displayBody := bodyStr
 	truncated := 0
 
-	if keyword != "" {
-		if !strings.Contains(bodyStr, keyword) {
+	// Evaluate variables and expression
+	if len(variables) > 0 && expression != "" {
+		values, err := EvaluateVariables(bodyStr, variables)
+		if err != nil {
 			if output {
-				helpers.PrintError(false, "Keyword not found in response body")
+				helpers.PrintError(false, "Error evaluating variables ("+err.Error()+")")
+			}
+			return false
+		}
+
+		result, err := EvaluateExpression(expression, values)
+		if err != nil {
+			if output {
+				helpers.PrintError(false, "Error evaluating expression ("+err.Error()+")")
+			}
+			return false
+		}
+
+		if !result {
+			if output {
+				helpers.PrintError(false, "Expression evaluated to false")
 			}
 			return false
 		}

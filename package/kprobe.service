@@ -1,0 +1,12 @@
+[Unit]
+Description=KProbe API Server
+After=network.target
+
+[Service]
+ExecStart=/opt/kprobe/api-server
+Restart=always
+User=root
+WorkingDirectory=/opt/kprobe
+
+[Install]
+WantedBy=multi-user.target

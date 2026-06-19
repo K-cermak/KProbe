@@ -4,12 +4,12 @@ import (
 	"strings"
 	"sync"
 
-	"UptimeKumaProbeCLI/db"
-	"UptimeKumaProbeCLI/helpers"
-	"UptimeKumaProbeCLI/utils"
+	"KProbeCLI/db"
+	"KProbeCLI/helpers"
+	"KProbeCLI/utils"
 )
 
-func CronStart(command string) {
+func ScanStart(command string) {
 	scansSlice := db.GetScans()
 	scansMap := make(map[string]bool)
 
@@ -56,7 +56,7 @@ func CronStart(command string) {
 		}
 
 	} else {
-		helpers.PrintError(true, "Invalid cron command")
+		helpers.PrintError(true, "Invalid scan command")
 	}
 
 	scanCount := 0
@@ -68,10 +68,10 @@ func CronStart(command string) {
 	}
 
 	if scanCount == 0 {
-		helpers.PrintError(true, "No scans selected for cron job")
+		helpers.PrintError(true, "No scans selected for execution")
 	}
 
-	helpers.PrintInfo("Starting cron job for " + helpers.IntToStr(scanCount) + " scan(s)")
+	helpers.PrintInfo("Starting execution for " + helpers.IntToStr(scanCount) + " scan(s)")
 
 	ignoreSslStr := db.GetValue("ignore_ssl_errors")
 	ignoreSsl := false
@@ -96,10 +96,11 @@ func CronStart(command string) {
 			helpers.PrintInfo("Starting scan " + s.Name)
 
 			var result bool
-			if s.Type == "ping" {
+			switch s.Type {
+			case "ping":
 				result = utils.PingAddress(s.Address, s.Timeout, false)
-			} else if s.Type == "http" {
-				result = utils.CheckHTTP(s.Address, s.Timeout, s.StatusCode, s.Keyword, ignoreSsl, false)
+			case "http":
+				result = utils.CheckHTTP(s.Address, s.Timeout, s.StatusCode, s.Variables, s.Expression, ignoreSsl, false)
 			}
 
 			helpers.PrintSuccess("Scan " + s.Name + " finished (" + helpers.BoolToState(result) + ")")
