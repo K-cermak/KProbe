@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"os"
+	"path/filepath"
 	"time"
 
 	"KProbeCLI/helpers"
@@ -58,7 +59,7 @@ func InitDatabase() {
 
 	_, err = DB.Exec(createTableQuery)
 	if err != nil {
-		helpers.PrintError(true, "Failed to create table ("+err.Error()+"), maybe try rerunning with sudo?")
+		helpers.PrintError(true, "Failed to create table ("+err.Error()+")")
 	}
 
 	createTableQuery = `
@@ -74,7 +75,7 @@ func InitDatabase() {
 
 	_, err = DB.Exec(createTableQuery)
 	if err != nil {
-		helpers.PrintError(true, "Failed to create table ("+err.Error()+"), maybe try rerunning with sudo?")
+		helpers.PrintError(true, "Failed to create table ("+err.Error()+")")
 	}
 
 	createTableQuery = `
@@ -88,7 +89,7 @@ func InitDatabase() {
 
 	_, err = DB.Exec(createTableQuery)
 	if err != nil {
-		helpers.PrintError(true, "Failed to create table ("+err.Error()+"), maybe try rerunning with sudo?")
+		helpers.PrintError(true, "Failed to create table ("+err.Error()+")")
 	}
 
 	InsertValue("probe_name", "New Probe")
@@ -105,6 +106,19 @@ func InitDatabase() {
 	InsertValue("ignore_ssl_errors", "false")
 	InsertValue("max_http_body_size", "10")
 	InsertValue("output_http_info", "false")
+
+	// Set file permissions so both root (API server) and non-root users (CLI) can access the DB
+	err = os.Chmod(dbPath, 0666)
+	if err != nil {
+		helpers.PrintError(true, "Failed to set database permissions ("+err.Error()+")")
+	}
+
+	// SQLite also needs write access to the directory for journal/WAL files
+	dbDir := filepath.Dir(dbPath)
+	err = os.Chmod(dbDir, 0777)
+	if err != nil {
+		helpers.PrintError(true, "Failed to set database directory permissions ("+err.Error()+")")
+	}
 }
 
 func DatabaseVersionCheck() bool {
@@ -195,7 +209,7 @@ func GetScans() []helpers.Scan {
 
 	rows, err := DB.Query(query)
 	if err != nil {
-		helpers.PrintError(true, "Failed to get data from database ("+err.Error()+"), maybe try rerunning with sudo?")
+		helpers.PrintError(true, "Failed to get data from database ("+err.Error()+")")
 	}
 
 	for rows.Next() {

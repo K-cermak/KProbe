@@ -36,11 +36,10 @@
 > [!NOTE]
 > KProbe is installed to `/opt/kprobe`. The dedicated API server runs as a systemd service (`kprobe.service`) and is configured to start automatically on system boot.
 
-- <b>2. Initialize the Database and Start the Service</b>
-  - Once installed, initialize KProbe's local database and restart the background API service:
+- <b>2. Verify the Service is Running</b>
+  - The database is initialized automatically during installation. You can verify the API service is running with:
   ```bash
-  kprobe db init
-  sudo kprobe api restart
+  kprobe api test service
   ```
 
 <br>
@@ -185,11 +184,14 @@ kprobe history <scan_name> <from> <to>
 kprobe db init
 ```
 - Initialize the database.
+- This command is run automatically during package installation.
+- If you need to run it manually, use `sudo` (the database is stored in `/opt/kprobe/`).
 
 ```
-kprobe db reset
+sudo kprobe db reset
 ```
 - Reset the database. **This will delete all data!**
+- Requires `sudo` privileges.
 
 <br>
 <br>
@@ -306,19 +308,16 @@ Because KProbe does not include an automated migration tool, you must migrate yo
    curl -sSL https://raw.githubusercontent.com/K-cermak/Uptime-Kuma-Probe/61ff4e8d88f423294359dbd472846eb81cde5d1b/scripts/uninstall.sh -o uninstall.sh
    sudo bash uninstall.sh
    rm uninstall.sh
+   sudo rm -rf /opt/kprobe
    ```
 2. **Install KProbe**: Download and install the new package (`.deb` or `.rpm`) following the [Installation](#installation) guide.
-3. **Reinitialize the database**: Recreate the database structure. Note that database schema changes prevent a direct data migration, meaning previous scan history will be lost:
-   ```bash
-   kprobe db reset
-   ```
-4. **Upgrade your configuration**: Open your old configuration file, import or recreate your settings in the new KProbe configuration editor (since the configuration schema has been upgraded, e.g., the keyword system has been replaced by the new Variables + Expressions engine).
-5. **Download the new configuration**: Verify your values in the editor and click **Download Config**.
-6. **Apply the configuration**: Load your new configuration file into KProbe:
+3. **Upgrade your configuration**: Open your old configuration file, import or recreate your settings in the new KProbe configuration editor (since the configuration schema has been upgraded, e.g., the keyword system has been replaced by the new Variables + Expressions engine).
+4. **Download the new configuration**: Verify your values in the editor and click **Download Config**.
+5. **Apply the configuration**: Load your new configuration file into KProbe:
    ```bash
    kprobe config replace <path_to_new_config_file>
    ```
-7. **Update your cron jobs / automated scripts**: The legacy command `kprobe cron` has been renamed to `kprobe scan`. If you use cron or custom scripts, edit them to call the new command:
+6. **Update your cron jobs / automated scripts**: The legacy command `kprobe cron` has been renamed to `kprobe scan`. If you use cron or custom scripts, edit them to call the new command:
    ```bash
    # Example cron line:
    */5 * * * * /usr/local/bin/kprobe scan all
