@@ -26,6 +26,7 @@ jobs:
           FILE_VER=$(cat VERSION | xargs)
           BRANCH_NAME="${{ github.ref_name }}"
           echo "VERSION=${BRANCH_NAME}_${FILE_VER}" >> $GITHUB_ENV
+          echo "PKG_VERSION=${FILE_VER}-${BRANCH_NAME}" >> $GITHUB_ENV
 
       - name: Build Go binaries
         run: |
@@ -63,13 +64,13 @@ jobs:
       - name: Build DEB package
         run: nfpm pkg --packager deb --target .
         env:
-          VERSION: ${{ env.VERSION }}
+          VERSION: ${{ env.PKG_VERSION }}
           GOARCH: ${{ matrix.goarch }}
 
       - name: Build RPM package
         run: nfpm pkg --packager rpm --target .
         env:
-          VERSION: ${{ env.VERSION }}
+          VERSION: ${{ env.PKG_VERSION }}
           GOARCH: ${{ matrix.goarch }}
 
       - name: Upload Artifacts
