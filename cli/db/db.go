@@ -58,7 +58,7 @@ func InitDatabase() {
 
 	_, err = DB.Exec(createTableQuery)
 	if err != nil {
-		helpers.PrintError(true, "Failed to create table ("+err.Error()+")")
+		helpers.PrintError(true, "Failed to create table ("+err.Error()+"), maybe try rerunning with sudo?")
 	}
 
 	createTableQuery = `
@@ -74,7 +74,7 @@ func InitDatabase() {
 
 	_, err = DB.Exec(createTableQuery)
 	if err != nil {
-		helpers.PrintError(true, "Failed to create table ("+err.Error()+")")
+		helpers.PrintError(true, "Failed to create table ("+err.Error()+"), maybe try rerunning with sudo?")
 	}
 
 	createTableQuery = `
@@ -88,7 +88,7 @@ func InitDatabase() {
 
 	_, err = DB.Exec(createTableQuery)
 	if err != nil {
-		helpers.PrintError(true, "Failed to create table ("+err.Error()+")")
+		helpers.PrintError(true, "Failed to create table ("+err.Error()+"), maybe try rerunning with sudo?")
 	}
 
 	InsertValue("probe_name", "New Probe")
@@ -195,7 +195,7 @@ func GetScans() []helpers.Scan {
 
 	rows, err := DB.Query(query)
 	if err != nil {
-		helpers.PrintError(true, "Failed to get data from database ("+err.Error()+")")
+		helpers.PrintError(true, "Failed to get data from database ("+err.Error()+"), maybe try rerunning with sudo?")
 	}
 
 	for rows.Next() {
