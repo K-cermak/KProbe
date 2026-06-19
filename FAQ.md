@@ -52,7 +52,7 @@
 > [!NOTE]
 > You can also access the editor at `http://YOUR_SERVER_IP/editor`.
 
-- The editor is straightforward to use — all the necessary information is provided within it. To download the configuration file, click on the **"Verify Values"** button and then on **"Download Config"**. To reload an existing configuration file, click on **"Load Config"**.
+- The editor is straightforward to use – all the necessary information is provided within it. To download the configuration file, click on the **"Verify Values"** button and then on **"Download Config"**. To reload an existing configuration file, click on **"Load Config"**.
 
 <img src="https://cdn.karlosoft.com/cdn-data/ks/img/kprobe/editor2.png" width="700" alt="KProbe Editor">
 
@@ -84,9 +84,9 @@ kprobe scan <type>
 ```
 
 As a type, use:
-- `all` — run all scans
-- `all_except:<names>` — run all scans except the ones specified (separate names with commas, no spaces)
-- `only:<names>` — run only the specified scans (separate names with commas, no spaces)
+- `all` – run all scans
+- `all_except:<names>` – run all scans except the ones specified (separate names with commas, no spaces)
+- `only:<names>` – run only the specified scans (separate names with commas, no spaces)
 
 To set up automated scanning, open the cron editor:
 ```

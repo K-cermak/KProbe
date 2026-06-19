@@ -6,7 +6,7 @@ By Karel Cermak | [Karlosoft](https://karlosoft.com).
 
 ## What is KProbe?
 - **KProbe is a lightweight, standalone monitoring system designed to run locally inside your network.**
-- It actively checks local devices—such as Wi-Fi access points, IP cameras, printers, and internal servers—using ping (ICMP) and HTTP requests.
+- It actively checks local devices – such as Wi-Fi access points, IP cameras, printers, and internal servers – using ping (ICMP) and HTTP requests.
 - The status of these checks is exposed through a clean **HTTP API**, allowing you to easily integrate it with external monitoring dashboards like Uptime Kuma, Zabbix, or any custom tool of your choice.
 - It is designed to be self-contained, easy to deploy, and runs completely independently on your local machine or server.
 

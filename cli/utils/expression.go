@@ -436,7 +436,7 @@ func (p *parser) parseComparison() (bool, error) {
 		return leftVal.(bool), nil
 	}
 
-	// A bare number that isn't compared — treat as truthy (non-zero)
+	// A bare number that isn't compared – treat as truthy (non-zero)
 	num, _ := toFloat64(leftVal)
 	return num != 0, nil
 }

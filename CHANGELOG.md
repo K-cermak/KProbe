@@ -9,17 +9,17 @@
 ### Changed
 - The `kprobe cron` command has been renamed to `kprobe scan` to better reflect its purpose.
 - Replaced the simple keyword matching system with a new **Variables + Expressions** engine for HTTP scans:
-  - `var_bool:<name>` — searches for a keyword in the response body.
-  - `var_json_bool:<name>` — extracts a boolean value from the JSON response using a JSON path.
-  - `var_json_number:<name>` — extracts a numeric value from the JSON response using a JSON path.
-  - `expression=<expr>` — evaluates a logical expression combining variables (supports `&&`, `||`, `!`, `>`, `<`, `>=`, `<=`, `==`, `!=`).
+  - `var_bool:<name>` – searches for a keyword in the response body.
+  - `var_json_bool:<name>` – extracts a boolean value from the JSON response using a JSON path.
+  - `var_json_number:<name>` – extracts a numeric value from the JSON response using a JSON path.
+  - `expression=<expr>` – evaluates a logical expression combining variables (supports `&&`, `||`, `!`, `>`, `<`, `>=`, `<=`, `==`, `!=`).
 - The CLI version is now **dynamically injected at build time** instead of being hardcoded.
 - Better texts in the CLI.
 - Improved texts in README and FAQ.
 
 ### Added
-- New configurable key: `max_http_body_size` — sets the maximum HTTP response body size to read during scans (in MB, default 10).
-- New configurable key: `output_http_info` — toggles detailed HTTP response output during `kprobe test http` commands.
+- New configurable key: `max_http_body_size` – sets the maximum HTTP response body size to read during scans (in MB, default 10).
+- New configurable key: `output_http_info` – toggles detailed HTTP response output during `kprobe test http` commands.
 - Installation is now done via `.deb` / `.rpm` packages built with nFPM, replacing the old `install.sh` script.
 - Added build for Arm.
 
