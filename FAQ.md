@@ -303,7 +303,9 @@ Because KProbe does not include an automated migration tool, you must migrate yo
 
 1. **Uninstall the legacy application**: Run the uninstall script from the legacy repository to remove the old version:
    ```bash
-   curl -sSL https://raw.githubusercontent.com/K-cermak/Uptime-Kuma-Probe/61ff4e8d88f423294359dbd472846eb81cde5d1b/scripts/uninstall.sh | sudo bash
+   curl -sSL https://raw.githubusercontent.com/K-cermak/Uptime-Kuma-Probe/61ff4e8d88f423294359dbd472846eb81cde5d1b/scripts/uninstall.sh -o uninstall.sh
+   sudo bash uninstall.sh
+   rm uninstall.sh
    ```
 2. **Install KProbe**: Download and install the new package (`.deb` or `.rpm`) following the [Installation](#installation) guide.
 3. **Reinitialize the database**: Recreate the database structure. Note that database schema changes prevent a direct data migration, meaning previous scan history will be lost:
