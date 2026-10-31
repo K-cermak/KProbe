@@ -211,6 +211,7 @@ func GetScans() []helpers.Scan {
 	if err != nil {
 		helpers.PrintError(true, "Failed to get data from database ("+err.Error()+")")
 	}
+	defer rows.Close()
 
 	for rows.Next() {
 		var scan helpers.Scan
@@ -234,6 +235,10 @@ func GetScans() []helpers.Scan {
 		}
 
 		scans = append(scans, scan)
+	}
+
+	if err = rows.Err(); err != nil {
+		helpers.PrintError(true, "Failed to read data from database ("+err.Error()+")")
 	}
 
 	return scans
@@ -297,6 +302,7 @@ func GetScanRes(scanName string, start string, end string) []helpers.ScanRes {
 	if err != nil {
 		helpers.PrintError(true, "Failed to get data from database ("+err.Error()+")")
 	}
+	defer rows.Close()
 
 	for rows.Next() {
 		var res helpers.ScanRes
@@ -307,6 +313,10 @@ func GetScanRes(scanName string, start string, end string) []helpers.ScanRes {
 		}
 
 		scanRes = append(scanRes, res)
+	}
+
+	if err = rows.Err(); err != nil {
+		helpers.PrintError(true, "Failed to read data from database ("+err.Error()+")")
 	}
 
 	return scanRes
@@ -321,7 +331,7 @@ func AddScanRes(scanName string, passed bool) {
 
 	insertQuery := `
 	INSERT INTO history (scan_name, passed, delete_after) 
-	VALUES (?, ?, datetime('now', 'localtime', '+' || ? || ' days'));
+	VALUES (?, ?, datetime('now', '+' || ? || ' days'));
 	`
 
 	_, err := DB.Exec(insertQuery, scanName, passed, daysToDelete)
@@ -337,7 +347,7 @@ func DeleteOldScanRes() {
 
 	deleteQuery := `
 	DELETE FROM history
-	WHERE delete_after < datetime('now', 'localtime');
+	WHERE delete_after < datetime('now');
 	`
 
 	_, err := DB.Exec(deleteQuery)

@@ -11,8 +11,8 @@ import (
 
 func PingTest(address string, timeout string) {
 	count, correct := helpers.StrToInt(timeout)
-	if !correct {
-		helpers.PrintError(true, "Invalid timeout value")
+	if !correct || count < 0 || count > 30000 {
+		helpers.PrintError(true, "Invalid timeout value (must be between 0 and 30000 ms)")
 	}
 
 	helpers.PrintInfo("Pinging " + address + " with timeout " + timeout + " ms")
@@ -26,8 +26,8 @@ func PingTest(address string, timeout string) {
 
 func HttpTest(address string, timeout string) {
 	count, correct := helpers.StrToInt(timeout)
-	if !correct {
-		helpers.PrintError(true, "Invalid timeout value")
+	if !correct || count < 0 || count > 30000 {
+		helpers.PrintError(true, "Invalid timeout value (must be between 0 and 30000 ms)")
 	}
 
 	ignoreSslStr := db.GetValue("ignore_ssl_errors")

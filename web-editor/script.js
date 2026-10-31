@@ -424,7 +424,7 @@ function validateExpressionLive() {
     } else {
         preview.innerHTML = issues
             .map(function (msg) {
-                return '<span class="text-warning"><i class="bi bi-exclamation-triangle me-1"></i>' + msg + "</span>";
+                return '<span class="text-warning"><i class="bi bi-exclamation-triangle me-1"></i>' + escapeHtml(msg) + "</span>";
             })
             .join("<br>");
     }
@@ -572,6 +572,16 @@ function tokenizeExpression(expr) {
 
 
 // ===== VERIFICATION =====
+
+function escapeHtml(text) {
+    return String(text === undefined || text === null ? "" : text)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+}
+
 function verifyCheck() {
     let check_ok = true;
     errorArea.classList.add("d-none");
@@ -587,13 +597,13 @@ function verifyCheck() {
             }
 
             if (data[i].name.length > 32) {
-                errorList.innerHTML += "<li>Scan name must be less than 32 characters (scan name: " + data[i].name + ").</li>";
+                errorList.innerHTML += "<li>Scan name must be less than 32 characters (scan name: " + escapeHtml(data[i].name) + ").</li>";
                 check_ok = false;
                 break;
             }
 
             if (!/^[a-z0-9_]+$/g.test(data[i].name)) {
-                errorList.innerHTML += "<li>Scan name can only contain lowercase letters, digits and underscores (scan name: " + data[i].name + ").</li>";
+                errorList.innerHTML += "<li>Scan name can only contain lowercase letters, digits and underscores (scan name: " + escapeHtml(data[i].name) + ").</li>";
                 check_ok = false;
                 break;
             }
@@ -601,7 +611,7 @@ function verifyCheck() {
             for (let j = 0; j < data.length; j++) {
                 if (j === i) continue;
                 if (data[j].name === data[i].name) {
-                    let newErrorMessage = "<li>Scan name must be unique (scan name: " + data[i].name + ").</li>";
+                    let newErrorMessage = "<li>Scan name must be unique (scan name: " + escapeHtml(data[i].name) + ").</li>";
                     if (!errorList.innerHTML.includes(newErrorMessage)) {
                         errorList.innerHTML += newErrorMessage;
                     }
@@ -614,12 +624,12 @@ function verifyCheck() {
         // Address validation
         do {
             if (data[i].address === "") {
-                errorList.innerHTML += "<li>Address cannot be empty (scan name: " + data[i].name + ").</li>";
+                errorList.innerHTML += "<li>Address cannot be empty (scan name: " + escapeHtml(data[i].name) + ").</li>";
                 check_ok = false;
                 break;
             }
             if (data[i].address.length > 256) {
-                errorList.innerHTML += "<li>Address must be less than 256 characters (scan name: " + data[i].name + ").</li>";
+                errorList.innerHTML += "<li>Address must be less than 256 characters (scan name: " + escapeHtml(data[i].name) + ").</li>";
                 check_ok = false;
                 break;
             }
@@ -628,12 +638,12 @@ function verifyCheck() {
         // Timeout validation
         do {
             if (data[i].timeout < 0 || data[i].timeout > 30000) {
-                errorList.innerHTML += "<li>Timeout must be between 0 and 30000 (scan name: " + data[i].name + ").</li>";
+                errorList.innerHTML += "<li>Timeout must be between 0 and 30000 (scan name: " + escapeHtml(data[i].name) + ").</li>";
                 check_ok = false;
                 break;
             }
             if (!Number.isInteger(data[i].timeout)) {
-                errorList.innerHTML += "<li>Timeout must be an integer (scan name: " + data[i].name + ").</li>";
+                errorList.innerHTML += "<li>Timeout must be an integer (scan name: " + escapeHtml(data[i].name) + ").</li>";
                 check_ok = false;
                 break;
             }
@@ -647,13 +657,13 @@ function verifyCheck() {
                 }
 
                 if (data[i].status_code.length > 256) {
-                    errorList.innerHTML += "<li>Status code must be less than 256 characters (scan name: " + data[i].name + ").</li>";
+                    errorList.innerHTML += "<li>Status code must be less than 256 characters (scan name: " + escapeHtml(data[i].name) + ").</li>";
                     check_ok = false;
                     break;
                 }
 
                 if (!/^[0-9,]+$/g.test(data[i].status_code)) {
-                    errorList.innerHTML += "<li>Status code can only contain digits and commas (scan name: " + data[i].name + ").</li>";
+                    errorList.innerHTML += "<li>Status code can only contain digits and commas (scan name: " + escapeHtml(data[i].name) + ").</li>";
                     check_ok = false;
                     break;
                 }
@@ -662,7 +672,7 @@ function verifyCheck() {
                 for (let j = 0; j < codes.length; j++) {
                     let code = parseInt(codes[j]);
                     if (code < 100 || code > 599 || !Number.isInteger(code)) {
-                        errorList.innerHTML += "<li>Status code must be an integer between 100 and 599 (scan name: " + data[i].name + ").</li>";
+                        errorList.innerHTML += "<li>Status code must be an integer between 100 and 599 (scan name: " + escapeHtml(data[i].name) + ").</li>";
                         check_ok = false;
                         break;
                     }
@@ -678,24 +688,24 @@ function verifyCheck() {
 
             for (let v = 0; v < vars.length; v++) {
                 if (!vars[v].name || vars[v].name.trim() === "") {
-                    errorList.innerHTML += "<li>Variable name cannot be empty (scan name: " + data[i].name + ").</li>";
+                    errorList.innerHTML += "<li>Variable name cannot be empty (scan name: " + escapeHtml(data[i].name) + ").</li>";
                     check_ok = false;
                 } else if (!/^[a-z][a-z0-9_]*$/.test(vars[v].name)) {
-                    errorList.innerHTML += "<li>Variable name \"" + vars[v].name + "\" is invalid (scan name: " + data[i].name + ").</li>";
+                    errorList.innerHTML += "<li>Variable name \"" + escapeHtml(vars[v].name) + "\" is invalid (scan name: " + escapeHtml(data[i].name) + ").</li>";
                     check_ok = false;
                 }
                 if (vars[v].name && varNames.has(vars[v].name)) {
-                    errorList.innerHTML += "<li>Duplicate variable name: \"" + vars[v].name + "\" (scan name: " + data[i].name + ").</li>";
+                    errorList.innerHTML += "<li>Duplicate variable name: \"" + escapeHtml(vars[v].name) + "\" (scan name: " + escapeHtml(data[i].name) + ").</li>";
                     check_ok = false;
                 }
                 varNames.add(vars[v].name);
 
                 if (vars[v].mode === "bool" && (!vars[v].value || vars[v].value.trim() === "")) {
-                    errorList.innerHTML += "<li>Variable \"" + vars[v].name + "\" value is empty (scan name: " + data[i].name + ").</li>";
+                    errorList.innerHTML += "<li>Variable \"" + escapeHtml(vars[v].name) + "\" value is empty (scan name: " + escapeHtml(data[i].name) + ").</li>";
                     check_ok = false;
                 }
                 if (vars[v].mode === "json" && (!vars[v].query || vars[v].query.trim() === "")) {
-                    errorList.innerHTML += "<li>Variable \"" + vars[v].name + "\" JSON query is empty (scan name: " + data[i].name + ").</li>";
+                    errorList.innerHTML += "<li>Variable \"" + escapeHtml(vars[v].name) + "\" JSON query is empty (scan name: " + escapeHtml(data[i].name) + ").</li>";
                     check_ok = false;
                 }
             }
@@ -704,11 +714,11 @@ function verifyCheck() {
                 let varTypes = buildVarTypeMap(vars);
                 let result = validateExpressionSyntax(expr, varNames, varTypes);
                 for (let e = 0; e < result.errors.length; e++) {
-                    errorList.innerHTML += "<li>Expression error: " + result.errors[e] + " (scan name: " + data[i].name + ").</li>";
+                    errorList.innerHTML += "<li>Expression error: " + escapeHtml(result.errors[e]) + " (scan name: " + escapeHtml(data[i].name) + ").</li>";
                     check_ok = false;
                 }
             } else if (vars.length > 0) {
-                errorList.innerHTML += "<li>Variables defined but no expression set (scan name: " + data[i].name + ").</li>";
+                errorList.innerHTML += "<li>Variables defined but no expression set (scan name: " + escapeHtml(data[i].name) + ").</li>";
                 check_ok = false;
             }
         }
@@ -764,8 +774,9 @@ function splitConfigLine(line) {
                 part += '"';
                 i++;
                 while (i < line.length && line[i] !== '"') {
-                    if (line[i] === "\\" && i + 1 < line.length && line[i + 1] === '"') {
-                        part += '\\"';
+                    // Keep escape sequences (\" and \\) intact, they are resolved in unquoteConfigValue
+                    if (line[i] === "\\" && i + 1 < line.length && (line[i + 1] === '"' || line[i + 1] === "\\")) {
+                        part += "\\" + line[i + 1];
                         i += 2;
                     } else {
                         part += line[i];
@@ -788,6 +799,17 @@ function splitConfigLine(line) {
     }
 
     return parts;
+}
+
+function unquoteConfigValue(value) {
+    if (value.length >= 2 && value[0] === '"' && value[value.length - 1] === '"') {
+        return value.substring(1, value.length - 1).replace(/\\(["\\])/g, "$1");
+    }
+    return value;
+}
+
+function quoteConfigValue(value) {
+    return '"' + String(value).replace(/\\/g, "\\\\").replace(/"/g, '\\"') + '"';
 }
 
 function parseConfig(content) {
@@ -815,12 +837,7 @@ function parseConfig(content) {
             if (eqIdx === -1) continue;
 
             let key = part.substring(0, eqIdx);
-            let value = part.substring(eqIdx + 1);
-
-            // Remove surrounding quotes
-            if (value.length >= 2 && value[0] === '"' && value[value.length - 1] === '"') {
-                value = value.substring(1, value.length - 1);
-            }
+            let value = unquoteConfigValue(part.substring(eqIdx + 1));
 
             if (key === "timeout") {
                 item.timeout = parseInt(value, 10);
@@ -881,26 +898,26 @@ function convertToConfig(data) {
 
             if (item.type === "http") {
                 if (item.status_code) {
-                    line += ' status_code="' + item.status_code + '"';
+                    line += " status_code=" + quoteConfigValue(item.status_code);
                 }
 
                 if (item.variables) {
                     for (let v = 0; v < item.variables.length; v++) {
                         let variable = item.variables[v];
                         if (variable.mode === "bool") {
-                            line += ' var_bool:' + variable.name + '="' + variable.value + '"';
+                            line += " var_bool:" + variable.name + "=" + quoteConfigValue(variable.value);
                         } else if (variable.mode === "json") {
                             if (variable.as === "number") {
-                                line += ' var_json_number:' + variable.name + '="' + variable.query + '"';
+                                line += " var_json_number:" + variable.name + "=" + quoteConfigValue(variable.query);
                             } else {
-                                line += ' var_json_bool:' + variable.name + '="' + variable.query + '"';
+                                line += " var_json_bool:" + variable.name + "=" + quoteConfigValue(variable.query);
                             }
                         }
                     }
                 }
 
                 if (item.expression) {
-                    line += ' expression="' + item.expression + '"';
+                    line += " expression=" + quoteConfigValue(item.expression);
                 }
             }
 

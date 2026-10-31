@@ -44,8 +44,10 @@ func splitConfigLine(line string) []string {
 				part.WriteRune('"')
 				i++
 				for i < len(runes) && runes[i] != '"' {
-					if runes[i] == '\\' && i+1 < len(runes) && runes[i+1] == '"' {
-						part.WriteString("\\\"")
+					// Keep escape sequences (\" and \\) intact, they are resolved in stripQuotes
+					if runes[i] == '\\' && i+1 < len(runes) && (runes[i+1] == '"' || runes[i+1] == '\\') {
+						part.WriteRune('\\')
+						part.WriteRune(runes[i+1])
 						i += 2
 					} else {
 						part.WriteRune(runes[i])
@@ -70,10 +72,12 @@ func splitConfigLine(line string) []string {
 	return parts
 }
 
+var quotedValueUnescaper = strings.NewReplacer(`\\`, `\`, `\"`, `"`)
+
 // stripQuotes removes surrounding double quotes from a string
 func stripQuotes(s string) string {
 	if len(s) >= 2 && s[0] == '"' && s[len(s)-1] == '"' {
-		return s[1 : len(s)-1]
+		return quotedValueUnescaper.Replace(s[1 : len(s)-1])
 	}
 	return s
 }
@@ -93,7 +97,7 @@ func parseConfigLine(fields []string) helpers.Scan {
 		part := fields[p]
 		eqIdx := strings.Index(part, "=")
 		if eqIdx == -1 {
-			continue
+			helpers.PrintError(true, "Unexpected value \""+part+"\" (scan: "+fields[0]+"). Values containing spaces must be quoted, e.g. expression=\"a && b\"")
 		}
 
 		key := part[:eqIdx]
@@ -105,9 +109,10 @@ func parseConfigLine(fields []string) helpers.Scan {
 
 		case key == "timeout":
 			t, ok := helpers.StrToInt(value)
-			if ok {
-				scan.Timeout = t
+			if !ok {
+				helpers.PrintError(true, "Invalid timeout: "+TIMEOUT_NOT_INT+" (scan: "+fields[0]+")")
 			}
+			scan.Timeout = t
 
 		case key == "status_code":
 			scan.StatusCode = value

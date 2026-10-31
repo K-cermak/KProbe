@@ -8,5 +8,6 @@ fi
 
 systemctl daemon-reload
 systemctl enable kprobe.service
-systemctl start kprobe.service
+# Restart (not start) so an upgrade replaces the still running old binary
+systemctl restart kprobe.service
 sysctl --system

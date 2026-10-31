@@ -105,17 +105,21 @@ func SetKeys(key string, value string) {
 		helpers.PrintInfo("You should now run <sudo kprobe api restart> to apply some changes")
 
 	case "delete_after":
-		if len(value) < 1 || len(value) > 36500 {
+		valInt, correct := helpers.StrToInt(value)
+		if !correct || valInt < 1 || valInt > 36500 {
 			helpers.PrintError(true, "Delete after must be between 1 and 36500 days")
 		}
 
+		value = helpers.IntToStr(valInt)
 		db.InsertValue("delete_after", value)
 
 	case "api_port":
-		if len(value) < 1 || len(value) > 65535 {
+		valInt, correct := helpers.StrToInt(value)
+		if !correct || valInt < 1 || valInt > 65535 {
 			helpers.PrintError(true, "API port must be between 1 and 65535")
 		}
 
+		value = helpers.IntToStr(valInt)
 		db.InsertValue("api_port", value)
 		helpers.PrintInfo("You should now run <sudo kprobe api restart> to apply some changes")
 
@@ -128,10 +132,12 @@ func SetKeys(key string, value string) {
 		helpers.PrintInfo("You should now run <sudo kprobe api restart> to apply some changes")
 
 	case "ping_retries":
-		if len(value) < 1 || len(value) > 100 {
+		valInt, correct := helpers.StrToInt(value)
+		if !correct || valInt < 1 || valInt > 100 {
 			helpers.PrintError(true, "Ping retries must be between 1 and 100")
 		}
 
+		value = helpers.IntToStr(valInt)
 		db.InsertValue("ping_retries", value)
 
 	case "ignore_ssl_errors":

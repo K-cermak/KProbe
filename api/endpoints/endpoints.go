@@ -23,8 +23,8 @@ func ServeEditor(w http.ResponseWriter, r *http.Request) {
 	// if html file is not found, return 404
 	_, err := os.Stat("/opt/kprobe/editor.html")
 	if os.IsNotExist(err) {
-		w.WriteHeader(http.StatusNotFound)
 		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusNotFound)
 		jsonResponse := map[string]interface{}{
 			"error":   404,
 			"message": "Editor not found",
