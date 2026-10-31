@@ -14,7 +14,7 @@ func ScanStart(command string) {
 	scansMap := make(map[string]bool)
 
 	if len(scansSlice) == 0 {
-		helpers.PrintError(true, "No scans found in database, add some via <kprobe config replace <path>>")
+		helpers.PrintError(true, "No scans found in the database. Add them with <kprobe config replace <path>>")
 	}
 
 	for _, scan := range scansSlice {
@@ -36,7 +36,7 @@ func ScanStart(command string) {
 			if _, exists := scansMap[name]; exists {
 				scansMap[name] = false
 			} else {
-				helpers.PrintWarning("Scan " + name + " not found in database, skipping")
+				helpers.PrintWarning("Scan " + name + " not found in the database, skipping")
 			}
 		}
 
@@ -51,12 +51,12 @@ func ScanStart(command string) {
 			if _, exists := scansMap[name]; exists {
 				scansMap[name] = true
 			} else {
-				helpers.PrintWarning("Scan " + name + " not found in database, skipping")
+				helpers.PrintWarning("Scan " + name + " not found in the database, skipping")
 			}
 		}
 
 	} else {
-		helpers.PrintError(true, "Invalid scan command")
+		helpers.PrintError(true, "Invalid scan type, expected 'all', 'all_except:<names>' or 'only:<names>'")
 	}
 
 	scanCount := 0
@@ -71,7 +71,7 @@ func ScanStart(command string) {
 		helpers.PrintError(true, "No scans selected for execution")
 	}
 
-	helpers.PrintInfo("Starting execution for " + helpers.IntToStr(scanCount) + " scan(s)")
+	helpers.PrintInfo("Running " + helpers.IntToStr(scanCount) + " scan(s)")
 
 	ignoreSslStr := db.GetValue("ignore_ssl_errors")
 	ignoreSsl := false
@@ -127,9 +127,9 @@ func ScanStart(command string) {
 	if scanSuccessfull == scanCount {
 		helpers.PrintSuccess("All " + helpers.IntToStr(scanCount) + " scan(s) finished successfully")
 	} else if scanSuccessfull > 0 {
-		helpers.PrintWarning("Only " + helpers.IntToStr(scanSuccessfull) + " out of " + helpers.IntToStr(scanCount) + " scan(s) finished successfully")
+		helpers.PrintWarning("Only " + helpers.IntToStr(scanSuccessfull) + " of " + helpers.IntToStr(scanCount) + " scan(s) succeeded")
 	} else {
-		helpers.PrintError(true, "All "+helpers.IntToStr(scanCount)+" scan(s) finished with errors")
+		helpers.PrintError(true, "All "+helpers.IntToStr(scanCount)+" scan(s) failed")
 	}
 
 	helpers.PrintInfo("Deleting old scan results")

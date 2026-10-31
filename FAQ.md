@@ -3,7 +3,7 @@
 - [Editor](#editor)
 - [Creating a Scan, Setting Up Cron](#creating-a-scan-setting-up-cron)
 - [API, Reverse Proxy](#api-reverse-proxy)
-- [Connect to Uptime Kuma](#connect-to-uptime-kuma)
+- [Integration with Uptime Kuma](#integration-with-uptime-kuma)
 - [List of All Commands](#list-of-all-commands)
 - [Uninstallation](#uninstallation)
 - [Migration](#migration)
@@ -11,8 +11,8 @@
 <br>
 
 ## Installation
-- **System Requirements**: We recommend setting up a virtual server (VM) or dedicating physical hardware. The baseline requirements are minimal: **1 GB RAM**, **1 CPU core**, and **1 GB of free disk space** for the SQLite database (more space might be needed if you plan to run many scans or retain long history records).
-- **Supported Operating Systems**: KProbe is compatible with any modern Linux distribution using **systemd** (`systemctl`). We offer native packages for:
+- **System Requirements**: We recommend a dedicated virtual machine (VM) or physical server. The requirements are minimal: **1 GB RAM**, **1 CPU core** and **1 GB of free disk space** for the SQLite database (more may be needed if you run many scans or keep a long history).
+- **Supported Operating Systems**: KProbe is compatible with any modern Linux distribution using **systemd** (`systemctl`). Native packages are available for:
   - **Debian / Ubuntu** (and derivatives) via `.deb` packages.
   - **CentOS / RHEL / Rocky Linux / Fedora** (and derivatives) via `.rpm` packages.
 
@@ -36,8 +36,8 @@
 > [!NOTE]
 > KProbe is installed to `/opt/kprobe`. The dedicated API server runs as a systemd service (`kprobe.service`) and is configured to start automatically on system boot.
 
-- <b>2. Verify the Service is Running</b>
-  - The database is initialized automatically during installation. You can verify the API service is running with:
+- <b>2. Verify That the Service Is Running</b>
+  - The database is initialized automatically during installation. To check that the API service is running, use:
   ```bash
   kprobe api test service
   ```
@@ -46,12 +46,12 @@
 <br>
 
 ## Editor
-- You can open the editor to create a scan configuration. The editor is available [here](https://github.com/K-cermak/KProbe/blob/main/web-editor/editor.html) (download the folder and open it in your browser).
+- Use the editor to create a scan configuration. The editor is available [here](https://github.com/K-cermak/KProbe/tree/main/web-editor) (download the folder and open `index.html` in your browser).
 
 > [!NOTE]
 > You can also access the editor at `http://YOUR_SERVER_IP/editor`.
 
-- The editor is straightforward to use – all the necessary information is provided within it. To download the configuration file, click on the **"Verify Values"** button and then on **"Download Config"**. To reload an existing configuration file, click on **"Load Config"**.
+- The editor is straightforward to use – all the necessary information is provided within it. To download the configuration file, click **"Download Config"** (the values are verified first). To edit an existing configuration file, click **"Load Config"**.
 
 <img src="https://cdn.karlosoft.com/cdn-data/ks/img/kprobe/editor2.png" width="700" alt="KProbe Editor">
 
@@ -66,13 +66,13 @@
 kprobe config replace <path_to_config_file>
 ```
 
-- If you want to verify the configuration file before loading it, run:
+- To verify the configuration file before loading it, run:
 ```
 kprobe config verify <path_to_config_file>
 ```
 
 > [!NOTE]
-> The configuration file is stored in the database and the original file is not used by KProbe itself. You can safely delete it after loading.
+> The configuration is copied into the database, so KProbe does not need the original file. You can safely delete it after loading.
 
 
 <br>
@@ -82,7 +82,7 @@ kprobe config verify <path_to_config_file>
 kprobe scan <type>
 ```
 
-As a type, use:
+Available types:
 - `all` – run all scans
 - `all_except:<names>` – run all scans except the ones specified (separate names with commas, no spaces)
 - `only:<names>` – run only the specified scans (separate names with commas, no spaces)
@@ -92,7 +92,7 @@ To set up automated scanning, open the cron editor:
 crontab -e
 ```
 
-And add, for example, the following line:
+Then add a line such as:
 ```
 */5 * * * * /usr/local/bin/kprobe scan all
 ```
@@ -126,8 +126,8 @@ This will run all scans every 5 minutes.
 | `check` | Last scan execution time (ISO 8601) |
 | `status` | `"true"` if the scan passed, `"false"` if it failed |
 
-- You need to set up network access to the API server from your external monitoring dashboard (such as Uptime Kuma). Depending on your local network architecture, this can be achieved using a reverse proxy, port forwarding, or a VPN tunnel.
-- If you want to change the API port, run:
+- Your monitoring tool (such as Uptime Kuma) must be able to reach the API server. Depending on your network, you can achieve this with a reverse proxy, port forwarding or a VPN tunnel.
+- To change the API port, run:
 ```
 kprobe keys set api_port <port>
 sudo kprobe api restart
@@ -136,27 +136,27 @@ sudo kprobe api restart
 <br>
 <br>
 
-## Integration with External Monitoring (e.g., Uptime Kuma)
-- KProbe provides a standard JSON endpoint for each scan, making it straightforward to connect with external monitoring dashboards and notification tools.
-- To set up integration with **Uptime Kuma**, create a new monitor with these parameters:
+## Integration with Uptime Kuma
+- KProbe provides a standard JSON endpoint for each scan, so it is easy to connect to external monitoring dashboards and notification tools.
+- To integrate KProbe with **Uptime Kuma**, create a new monitor with these settings:
     - <b>Type:</b> HTTP(s) - Keyword
     - <b>URL:</b> `http://YOUR_SERVER_IP/status/<scan_name>`
     - <b>Keyword:</b> `"status":"true"`
 
-- Once set up, Uptime Kuma will query KProbe's API at regular intervals and handle alerts or notifications if any scan fails.
+- Uptime Kuma will then query the KProbe API at regular intervals and send notifications whenever a scan fails.
 
 <br>
 <br>
 
 ## List of All Commands
-- You can display the full list of commands by running: `kprobe help`.
+- To display the full list of commands, run `kprobe help`.
 
 <br>
 
 ```
 kprobe scan <type>
 ```
-- Start a single pass of scans with the specified type.
+- Run the selected scans once.
     - Use `all` to run all scans.
     - Use `all_except:<names>` to run all scans except the specified ones (separate names with commas, no spaces).
     - Use `only:<names>` to run only the specified scans (separate names with commas, no spaces).
@@ -166,7 +166,7 @@ kprobe scan <type>
 ```
 kprobe state
 ```
-- View the current state of all scans.
+- Show the latest result of each scan.
 
 <br>
 <br>
@@ -184,7 +184,7 @@ kprobe history <scan_name> <from> <to>
 kprobe db init
 ```
 - Initialize the database.
-- This command is run automatically during package installation.
+- This runs automatically during package installation.
 - If you need to run it manually, use `sudo` (the database is stored in `/opt/kprobe/`).
 
 ```
@@ -218,13 +218,13 @@ kprobe config view
 ```
 kprobe keys view all
 ```
-- View all keys with their values in the database.
+- Show all keys and their values.
 - Keys with the `*` prefix can be modified.
 
 ```
 kprobe keys view <key>
 ```
-- View the value of the specified key.
+- Show the value of the specified key.
 - If the key has the `*` prefix, it can be modified.
 
 ```
@@ -238,14 +238,14 @@ kprobe keys set <key> <value>
 ```
 kprobe test ping <address> <timeout_ms>
 ```
-- Test a ping to the specified address with the specified timeout.
-- Timeout is in milliseconds.
+- Ping the specified address.
+- The timeout is in milliseconds and applies to each packet.
 
 ```
 kprobe test http <address> <timeout_ms>
 ```
-- Test an HTTP request to the specified address with the specified timeout.
-- Timeout is in milliseconds.
+- Send an HTTP request to the specified address.
+- The timeout is in milliseconds.
 
 <br>
 <br>
@@ -253,9 +253,9 @@ kprobe test http <address> <timeout_ms>
 ```
 kprobe api test [service|http]
 ```
-- Test the API service.
-- Use `service` to test the API service via systemctl.
-- Use `http` to test the API service via an HTTP request.
+- Check the API service.
+- Use `service` to check the service status via systemctl.
+- Use `http` to send a test HTTP request to the API.
 
 ```
 kprobe api restart
@@ -270,13 +270,13 @@ kprobe api restart
 ```
 kprobe help
 ```
-- Print this help message.
+- Print the help message.
 
 <br>
 <br>
 
 ## Uninstallation
-- To completely remove KProbe, run the package manager command for your system:
+- To remove KProbe, run the command for your package manager:
 
   **On Debian/Ubuntu-based systems:**
   ```bash
@@ -290,10 +290,10 @@ kprobe help
   sudo dnf remove kprobe
   ```
 
-- This will stop the API service and clean up all binary and configuration files.
+- This stops the API service and removes the binaries and system files.
 
 > [!NOTE]
-> The SQLite database file at `/opt/kprobe/db.sqlite` is kept during uninstallation to prevent accidental data loss. If you want a completely clean removal, delete it manually: `sudo rm -rf /opt/kprobe`.
+> The SQLite database file at `/opt/kprobe/db.sqlite` is kept during uninstallation to prevent accidental data loss. For a completely clean removal, delete the directory manually: `sudo rm -rf /opt/kprobe`.
 
 <br>
 <br>
@@ -301,7 +301,7 @@ kprobe help
 ## Migration
 
 ### From Uptime Kuma Probe Extension (1.0.X) to KProbe (2.0.0)
-Because KProbe does not include an automated migration tool, you must migrate your configuration manually. Please follow these steps:
+KProbe does not include an automatic migration tool, so the configuration has to be migrated manually:
 
 1. **Uninstall the legacy application**: Run the uninstall script from the legacy repository to remove the old version:
    ```bash
@@ -311,13 +311,13 @@ Because KProbe does not include an automated migration tool, you must migrate yo
    sudo rm -rf /opt/kprobe
    ```
 2. **Install KProbe**: Download and install the new package (`.deb` or `.rpm`) following the [Installation](#installation) guide.
-3. **Upgrade your configuration**: Open your old configuration file, import or recreate your settings in the new KProbe configuration editor (since the configuration schema has been upgraded, e.g., the keyword system has been replaced by the new Variables + Expressions engine).
+3. **Upgrade your configuration**: Load your old configuration file into the new configuration editor, or recreate your scans there. The configuration format has changed – for example, the keyword system has been replaced by the new Variables + Expressions engine. The editor converts legacy `keyword` parameters automatically.
 4. **Download the new configuration**: Verify your values in the editor and click **Download Config**.
 5. **Apply the configuration**: Load your new configuration file into KProbe:
    ```bash
    kprobe config replace <path_to_new_config_file>
    ```
-6. **Update your cron jobs / automated scripts**: The legacy command `kprobe cron` has been renamed to `kprobe scan`. If you use cron or custom scripts, edit them to call the new command:
+6. **Update your cron jobs and scripts**: The legacy command `kprobe cron` has been renamed to `kprobe scan`. If you use cron or custom scripts, update them to call the new command:
    ```bash
    # Example cron line:
    */5 * * * * /usr/local/bin/kprobe scan all

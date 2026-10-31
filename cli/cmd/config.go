@@ -13,12 +13,12 @@ import (
 
 const (
 	INVALID_FORMAT       string = "Invalid config file format"
-	DUPL_SCAN_NAME       string = "Duplicate scan name detected"
+	DUPL_SCAN_NAME       string = "Duplicate scan name"
 	INVALID_SCAN_NAME    string = "Invalid scan name"
 	TIMEOUT_NOT_INT      string = "Timeout is not an integer"
 	TIMEOUT_OUT_OF_RANGE string = "Timeout out of range"
 	INVALID_CODE         string = "Invalid status code"
-	CODE_TOO_LONG        string = "Status code too long"
+	CODE_TOO_LONG        string = "Status codes are too long"
 )
 
 var varNameRegex = regexp.MustCompile(`^[a-z][a-z0-9_]*$`)
@@ -44,8 +44,10 @@ func splitConfigLine(line string) []string {
 				part.WriteRune('"')
 				i++
 				for i < len(runes) && runes[i] != '"' {
-					if runes[i] == '\\' && i+1 < len(runes) && runes[i+1] == '"' {
-						part.WriteString("\\\"")
+					// Keep escape sequences (\" and \\) intact, they are resolved in stripQuotes
+					if runes[i] == '\\' && i+1 < len(runes) && (runes[i+1] == '"' || runes[i+1] == '\\') {
+						part.WriteRune('\\')
+						part.WriteRune(runes[i+1])
 						i += 2
 					} else {
 						part.WriteRune(runes[i])
@@ -70,10 +72,12 @@ func splitConfigLine(line string) []string {
 	return parts
 }
 
+var quotedValueUnescaper = strings.NewReplacer(`\\`, `\`, `\"`, `"`)
+
 // stripQuotes removes surrounding double quotes from a string
 func stripQuotes(s string) string {
 	if len(s) >= 2 && s[0] == '"' && s[len(s)-1] == '"' {
-		return s[1 : len(s)-1]
+		return quotedValueUnescaper.Replace(s[1 : len(s)-1])
 	}
 	return s
 }
@@ -93,7 +97,7 @@ func parseConfigLine(fields []string) helpers.Scan {
 		part := fields[p]
 		eqIdx := strings.Index(part, "=")
 		if eqIdx == -1 {
-			continue
+			helpers.PrintError(true, "Unexpected value \""+part+"\" (scan: "+fields[0]+"). Values containing spaces must be quoted, e.g. expression=\"a && b\"")
 		}
 
 		key := part[:eqIdx]
@@ -101,13 +105,14 @@ func parseConfigLine(fields []string) helpers.Scan {
 
 		switch {
 		case key == "keyword":
-			helpers.PrintError(true, "Configuration contains the legacy 'keyword' parameter. Old configurations cannot be used in KProbe 2.0.0; please use the new configuration editor to migrate your settings.")
+			helpers.PrintError(true, "The configuration contains the legacy 'keyword' parameter, which is not supported since KProbe 2.0.0. Load the file into the configuration editor to migrate it.")
 
 		case key == "timeout":
 			t, ok := helpers.StrToInt(value)
-			if ok {
-				scan.Timeout = t
+			if !ok {
+				helpers.PrintError(true, "Invalid timeout: "+TIMEOUT_NOT_INT+" (scan: "+fields[0]+")")
 			}
+			scan.Timeout = t
 
 		case key == "status_code":
 			scan.StatusCode = value
@@ -188,7 +193,7 @@ func VerifyConfig(path string) {
 
 		scanAddress := fields[2]
 		if len(scanAddress) > 256 {
-			helpers.PrintError(true, "Invalid scan address")
+			helpers.PrintError(true, "Scan address must be at most 256 characters long (scan: "+scanName+")")
 		}
 
 		// Parse all key=value pairs
@@ -202,7 +207,7 @@ func VerifyConfig(path string) {
 		// Validate status code
 		if parsed.StatusCode != "" {
 			if scanType == "ping" {
-				helpers.PrintError(true, "Status code is not supported for ping scans")
+				helpers.PrintError(true, "Status codes are not supported for ping scans (scan: "+scanName+")")
 			}
 			if errMsg := validateStatusCode(parsed.StatusCode); errMsg != "" {
 				helpers.PrintError(true, "Invalid status code: "+errMsg)
@@ -235,21 +240,21 @@ func VerifyConfig(path string) {
 }
 
 func SetConfig(path string) {
-	helpers.PrintInfo("Replacing config file")
+	helpers.PrintInfo("Replacing configuration")
 
-	helpers.PrintQuestion("Do you want to replace the config file? (y/n)")
+	helpers.PrintQuestion("Do you want to replace the current configuration? (y/n)")
 	reader := bufio.NewReader(os.Stdin)
 	input, _ := reader.ReadString('\n')
 	input = strings.TrimSpace(input)
 
 	if input != "y" && input != "Y" {
-		helpers.PrintWarning("Config file replacement aborted")
+		helpers.PrintWarning("Configuration replacement aborted")
 		return
 	}
 
-	helpers.PrintInfo("Deleting old config file")
+	helpers.PrintInfo("Deleting current scans")
 	db.DeleteScans()
-	helpers.PrintSuccess("Old config file deleted successfully")
+	helpers.PrintSuccess("Current scans deleted")
 	helpers.PrintInfo("Adding new scans")
 
 	file, err := os.Open(path)
@@ -279,7 +284,7 @@ func SetConfig(path string) {
 		helpers.PrintError(true, "Failed to read file ("+err.Error()+")")
 	}
 
-	helpers.PrintSuccess("Config file replaced successfully")
+	helpers.PrintSuccess("Configuration replaced successfully")
 }
 
 func ViewConfig() {
@@ -293,7 +298,7 @@ func ViewConfig() {
 		fmt.Println("\033[1m" + scan.Name + "\033[0m")
 		fmt.Println(" -> Type: " + scan.Type)
 		fmt.Println(" -> Address: " + scan.Address)
-		fmt.Println(" -> Timeout: " + helpers.IntToStr(scan.Timeout) + "ms")
+		fmt.Println(" -> Timeout: " + helpers.IntToStr(scan.Timeout) + " ms")
 		if scan.StatusCode != "" {
 			fmt.Println(" -> Status code(s): " + scan.StatusCode)
 		}

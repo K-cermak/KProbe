@@ -31,8 +31,8 @@ func main() {
 
 	allowedEditor, ok := db.GetValue("editor_endpoint")
 	if ok != db.RES_OK {
-		helpers.PrintError("Failed to get if editor is allowed from database (" + ok + ")")
-		helpers.PrintWarning("Using default value true")
+		helpers.PrintError("Failed to get editor_endpoint from database (" + ok + ")")
+		helpers.PrintWarning("Enabling the editor by default")
 		allowedEditor = "true"
 	}
 

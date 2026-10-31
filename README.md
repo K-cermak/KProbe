@@ -31,7 +31,7 @@ By Karel Cermak | [Karlosoft](https://karlosoft.com).
 <br>
 
 ## Can I Use It Without Uptime Kuma?
-- Absolutely. The HTTP API is fully standalone, meaning you can query check statuses directly, integrate them into your own dashboards, or write simple scripts to process the results.
+- Absolutely. The HTTP API is fully standalone, meaning you can query scan statuses directly, integrate them into your own dashboards, or write simple scripts to process the results.
 
 - Please note:
     - KProbe is focused entirely on local execution and state reporting; it does **not** send notifications.

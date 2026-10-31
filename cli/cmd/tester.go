@@ -11,8 +11,8 @@ import (
 
 func PingTest(address string, timeout string) {
 	count, correct := helpers.StrToInt(timeout)
-	if !correct {
-		helpers.PrintError(true, "Invalid timeout value")
+	if !correct || count < 0 || count > 30000 {
+		helpers.PrintError(true, "Invalid timeout value (must be between 0 and 30000 ms)")
 	}
 
 	helpers.PrintInfo("Pinging " + address + " with timeout " + timeout + " ms")
@@ -26,8 +26,8 @@ func PingTest(address string, timeout string) {
 
 func HttpTest(address string, timeout string) {
 	count, correct := helpers.StrToInt(timeout)
-	if !correct {
-		helpers.PrintError(true, "Invalid timeout value")
+	if !correct || count < 0 || count > 30000 {
+		helpers.PrintError(true, "Invalid timeout value (must be between 0 and 30000 ms)")
 	}
 
 	ignoreSslStr := db.GetValue("ignore_ssl_errors")
@@ -47,7 +47,7 @@ func HttpTest(address string, timeout string) {
 
 func ApiTest(testType string) {
 	if testType != "service" && testType != "http" {
-		helpers.PrintError(true, "Invalid type, expected <service> or <http>")
+		helpers.PrintError(true, "Invalid type, expected 'service' or 'http'")
 	}
 
 	switch testType {
@@ -81,7 +81,7 @@ func ApiRestart() {
 	cmd := exec.Command("systemctl", "restart", "kprobe")
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		errMsg := "Failed to restart service (" + err.Error() + "). Tip: Use 'sudo' to run the command."
+		errMsg := "Failed to restart the service (" + err.Error() + "). Try running the command with sudo."
 		if len(output) > 0 {
 			errMsg += "\nOutput: " + string(output)
 		}

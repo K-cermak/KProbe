@@ -20,7 +20,7 @@ var resetFavModal = {
                 function : "close",
             },
             function : {
-                text : "<i class='bi bi-trash3-fill' ms-0 me-1'></i> Delete",
+                text : "<i class='bi bi-trash3-fill ms-0 me-1'></i> Delete",
                 type : "danger",
                 function : "function",
                 dataset : function() {
