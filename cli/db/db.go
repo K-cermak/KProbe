@@ -32,7 +32,7 @@ func connectDatabase() {
 	}
 
 	if !DatabaseVersionCheck() {
-		helpers.PrintError(true, "Database version mismatch, you probably upgraded the application. Run <kprobe db reset> to reinitialize the database. Migration of the database is not supported.")
+		helpers.PrintError(true, "Database version mismatch, the application was probably upgraded. Database migration is not supported, run <kprobe db reset> to reinitialize the database.")
 	}
 }
 

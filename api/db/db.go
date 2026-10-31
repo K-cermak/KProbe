@@ -21,7 +21,7 @@ var dbPath = "../cli/db.sqlite"
 
 func getDatabaseConnection() (*sql.DB) {
 	if !databaseExist() {
-		helpers.PrintError("Database does not exist, run CLI app with <kprobe db init> first")
+		helpers.PrintError("Database does not exist, run <kprobe db init> first")
 		return nil
 	}
 

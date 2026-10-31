@@ -101,5 +101,5 @@ func main() {
 		return
 	}
 
-	helpers.PrintError(true, "Invalid command, rerun with <kprobe help> for help")
+	helpers.PrintError(true, "Invalid command. Run <kprobe help> to see the available commands.")
 }

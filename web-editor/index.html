@@ -44,7 +44,7 @@
                     <th scope="col"></th>
                     <th scope="col">
                         Name
-                        <span class="d-inline-block" tabindex="0" data-bs-toggle="popover" data-bs-trigger="hover focus" data-bs-content="The name of the scan. Lower case letters, numbers or underscores only. Must be unique.">
+                        <span class="d-inline-block" tabindex="0" data-bs-toggle="popover" data-bs-trigger="hover focus" data-bs-content="Unique scan name. Lowercase letters, digits and underscores only, at most 32 characters.">
                             <i class="bi bi-question-circle"></i>
                         </span>
                     </th>
@@ -56,22 +56,22 @@
                     </th>
                     <th scope="col">
                         Address
-                        <span class="d-inline-block" tabindex="0" data-bs-toggle="popover" data-bs-trigger="hover focus" data-bs-content="Address for scan. Supports domain names, IPv4 and IPv6.">
+                        <span class="d-inline-block" tabindex="0" data-bs-toggle="popover" data-bs-trigger="hover focus" data-bs-content="Target of the scan. For ping, a hostname or an IPv4/IPv6 address. For HTTP, a full URL including http:// or https://.">
                             <i class="bi bi-question-circle"></i>
                         </span>
                     </th>
                     <th scope="col">
                         Timeout
-                        <span class="d-inline-block" tabindex="0" data-bs-toggle="popover" data-bs-trigger="hover focus" data-bs-content="Timeout in ms. If exceeded, the scan is aborted and the service is declared as unavailable. Only integer range 0-30000. 0 means unlimited (not recommended). For ping scans the timeout applies to each packet and 0 means 30000 ms.">
+                        <span class="d-inline-block" tabindex="0" data-bs-toggle="popover" data-bs-trigger="hover focus" data-bs-content="Timeout in milliseconds (integer, 0–30000). If it is exceeded, the scan fails. For ping scans, the timeout applies to each packet and 0 means 30000 ms. For HTTP scans, 0 means no timeout (not recommended).">
                             <i class="bi bi-question-circle"></i>
                         </span></th>
                     <th scope="col">Status Codes
-                        <span class="d-inline-block" tabindex="0" data-bs-toggle="popover" data-bs-trigger="hover focus" data-bs-content="Comma separated list of status codes that are considered as successful. Left empty to accept all status codes.">
+                        <span class="d-inline-block" tabindex="0" data-bs-toggle="popover" data-bs-trigger="hover focus" data-bs-content="Comma-separated list of status codes considered successful. Leave empty to accept any status code.">
                             <i class="bi bi-question-circle"></i>
                         </span>
                     </th>
                     <th scope="col">Expression
-                        <span class="d-inline-block" tabindex="0" data-bs-toggle="popover" data-bs-trigger="hover focus" data-bs-content="Logical expression with variables to validate the HTTP response. Click Edit button to configure.">
+                        <span class="d-inline-block" tabindex="0" data-bs-toggle="popover" data-bs-trigger="hover focus" data-bs-content="Logical expression over variables that validates the HTTP response. Click the button in this column to configure it.">
                             <i class="bi bi-question-circle"></i>
                         </span>
                     </th>
@@ -98,7 +98,7 @@
                     <div class="modal-body">
                         <h6 class="mb-3">
                             <i class="bi bi-puzzle me-1"></i>Variables
-                            <span class="d-inline-block" tabindex="0" data-bs-toggle="popover" data-bs-trigger="hover focus" data-bs-content="Define variables from the HTTP response. Bool mode checks if a value exists. JSON mode extracts values via JSON path – as bool (existence check) or as number (for comparisons).">
+                            <span class="d-inline-block" tabindex="0" data-bs-toggle="popover" data-bs-trigger="hover focus" data-bs-content="Define variables based on the HTTP response. Bool mode checks whether the response body contains the given text. JSON mode reads a value using a JSON path – as bool (true if the value exists and is truthy) or as number (for comparisons).">
                                 <i class="bi bi-question-circle"></i>
                             </span>
                         </h6>
@@ -130,7 +130,7 @@
 
     <footer class="footer mt-auto py-3 px-4 d-flex flex-column flex-md-row justify-content-between align-items-center" style="background-color: #0d131f;">
         <p class="text-muted m-0">© 2026 <a href="https://karlosoft.com/" target="_blank">Karel Čermák | Karlosoft</a></p>
-        <p class="text-muted m-0 mt-2 mt-md-0">Config Editor v2.0., compatible with <a href="https://github.com/K-cermak/KProbe" target="_blank">KProbe v2.0</a></p>
+        <p class="text-muted m-0 mt-2 mt-md-0">Config Editor v2.0, compatible with <a href="https://github.com/K-cermak/KProbe" target="_blank">KProbe v2.0</a></p>
     </footer>
 
     <script src="script.js" defer></script>

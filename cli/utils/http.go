@@ -32,7 +32,7 @@ func CheckHTTP(url string, timeout int, acceptCodes string, variables []helpers.
 	resp, err := client.Get(url)
 	if err != nil {
 		if output {
-			helpers.PrintError(false, "Error performing HTTP request ("+err.Error()+")")
+			helpers.PrintError(false, "HTTP request failed ("+err.Error()+")")
 		}
 		return false
 	}
@@ -47,7 +47,7 @@ func CheckHTTP(url string, timeout int, acceptCodes string, variables []helpers.
 	body, err := io.ReadAll(io.LimitReader(resp.Body, int64(maxBodySizeMB)*1024*1024))
 	if err != nil {
 		if output {
-			helpers.PrintError(false, "Error reading response body ("+err.Error()+")")
+			helpers.PrintError(false, "Failed to read response body ("+err.Error()+")")
 		}
 		return false
 	}
@@ -58,7 +58,7 @@ func CheckHTTP(url string, timeout int, acceptCodes string, variables []helpers.
 		for _, code := range acceptCodesArray {
 			codeInt, correct := helpers.StrToInt(code)
 			if !correct {
-				helpers.PrintError(false, "Invalid status code value")
+				helpers.PrintError(false, "Invalid status code in configuration")
 			}
 
 			if resp.StatusCode == codeInt {
@@ -69,7 +69,7 @@ func CheckHTTP(url string, timeout int, acceptCodes string, variables []helpers.
 
 		if !foundCode {
 			if output {
-				helpers.PrintError(false, "Invalid status code received ("+helpers.IntToStr(resp.StatusCode)+")")
+				helpers.PrintError(false, "Unexpected status code ("+helpers.IntToStr(resp.StatusCode)+")")
 			}
 			return false
 		}
@@ -84,7 +84,7 @@ func CheckHTTP(url string, timeout int, acceptCodes string, variables []helpers.
 		values, err := EvaluateVariables(bodyStr, variables)
 		if err != nil {
 			if output {
-				helpers.PrintError(false, "Error evaluating variables ("+err.Error()+")")
+				helpers.PrintError(false, "Failed to evaluate variables ("+err.Error()+")")
 			}
 			return false
 		}
@@ -92,7 +92,7 @@ func CheckHTTP(url string, timeout int, acceptCodes string, variables []helpers.
 		result, err := EvaluateExpression(expression, values)
 		if err != nil {
 			if output {
-				helpers.PrintError(false, "Error evaluating expression ("+err.Error()+")")
+				helpers.PrintError(false, "Failed to evaluate expression ("+err.Error()+")")
 			}
 			return false
 		}

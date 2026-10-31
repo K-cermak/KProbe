@@ -55,14 +55,14 @@ func ServeStatus(w http.ResponseWriter, r *http.Request, probeName string) {
 	}
 
 	if correct == db.DB_SCAN_NEWEST_FAILED {
-		helpers.PrintWarning("Failed to get scan from database with name " + scanName)
+		helpers.PrintWarning("No results found for scan " + scanName)
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusNotFound)
 		jsonResponse := map[string]interface{}{
 			"probe_name": probeName,
 			"time":      helpers.GetCurrTime(),
 			"error":     404,
-			"message":   "Not found, probably scan with this name does not exist",
+			"message":   "No results found, the scan probably does not exist",
 		}
 		json.NewEncoder(w).Encode(jsonResponse)
 		return

@@ -47,7 +47,7 @@ func HttpTest(address string, timeout string) {
 
 func ApiTest(testType string) {
 	if testType != "service" && testType != "http" {
-		helpers.PrintError(true, "Invalid type, expected <service> or <http>")
+		helpers.PrintError(true, "Invalid type, expected 'service' or 'http'")
 	}
 
 	switch testType {
@@ -81,7 +81,7 @@ func ApiRestart() {
 	cmd := exec.Command("systemctl", "restart", "kprobe")
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		errMsg := "Failed to restart service (" + err.Error() + "). Tip: Use 'sudo' to run the command."
+		errMsg := "Failed to restart the service (" + err.Error() + "). Try running the command with sudo."
 		if len(output) > 0 {
 			errMsg += "\nOutput: " + string(output)
 		}

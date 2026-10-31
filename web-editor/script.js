@@ -597,7 +597,7 @@ function verifyCheck() {
             }
 
             if (data[i].name.length > 32) {
-                errorList.innerHTML += "<li>Scan name must be less than 32 characters (scan name: " + escapeHtml(data[i].name) + ").</li>";
+                errorList.innerHTML += "<li>Scan name must be at most 32 characters long (scan name: " + escapeHtml(data[i].name) + ").</li>";
                 check_ok = false;
                 break;
             }
@@ -629,7 +629,7 @@ function verifyCheck() {
                 break;
             }
             if (data[i].address.length > 256) {
-                errorList.innerHTML += "<li>Address must be less than 256 characters (scan name: " + escapeHtml(data[i].name) + ").</li>";
+                errorList.innerHTML += "<li>Address must be at most 256 characters long (scan name: " + escapeHtml(data[i].name) + ").</li>";
                 check_ok = false;
                 break;
             }
@@ -657,7 +657,7 @@ function verifyCheck() {
                 }
 
                 if (data[i].status_code.length > 256) {
-                    errorList.innerHTML += "<li>Status code must be less than 256 characters (scan name: " + escapeHtml(data[i].name) + ").</li>";
+                    errorList.innerHTML += "<li>Status codes must be at most 256 characters long (scan name: " + escapeHtml(data[i].name) + ").</li>";
                     check_ok = false;
                     break;
                 }

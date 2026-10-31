@@ -16,7 +16,7 @@ func PingAddress(address string, timeout int, output bool) bool {
 	pinger, err := probing.NewPinger(address)
 	if err != nil {
 		if output {
-			helpers.PrintError(false, "Error creating ping command ("+err.Error()+")")
+			helpers.PrintError(false, "Failed to create pinger ("+err.Error()+")")
 		}
 
 		return false
@@ -26,7 +26,7 @@ func PingAddress(address string, timeout int, output bool) bool {
 	count, correct := helpers.StrToInt(countStr)
 	if !correct || count < 1 {
 		if output {
-			helpers.PrintError(false, "Error parsing ping retries value")
+			helpers.PrintError(false, "Invalid ping_retries value")
 		}
 
 		return false
@@ -53,7 +53,7 @@ func PingAddress(address string, timeout int, output bool) bool {
 	err = pinger.Run()
 	if err != nil {
 		if output {
-			helpers.PrintError(false, "Error running ping command ("+err.Error()+")")
+			helpers.PrintError(false, "Failed to run ping ("+err.Error()+")")
 		}
 		return false
 	}
@@ -62,7 +62,7 @@ func PingAddress(address string, timeout int, output bool) bool {
 
 	stats := pinger.Statistics()
 	if output {
-		fmt.Println("\033[1mPING Stats to " + address + "\033[0m")
+		fmt.Println("\033[1mPing statistics for " + address + "\033[0m")
 		fmt.Printf(" -> Sent: %d\n", stats.PacketsSent)
 		fmt.Printf(" -> Received: %d\n", stats.PacketsRecv)
 		fmt.Printf(" -> Received within timeout: %d of %d (%.2f%% loss)\n", receivedInTime, count, packetLoss)

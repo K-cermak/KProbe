@@ -19,7 +19,7 @@ func ViewCurrentState() {
 
 		state, success := db.GetScanNewest(scan.Name)
 		if !success {
-			fmt.Println(" -> State: Unknown")
+			fmt.Println(" -> No results yet")
 		} else {
 			fmt.Println(" -> " + helpers.BoolToState(state.Passed) + " (" + state.Generated + ")")
 		}
@@ -30,7 +30,7 @@ func ViewScanInfo(scanName string, start string, end string) {
 	data := db.GetScanRes(scanName, start, end)
 	if len(data) == 0 {
 		helpers.PrintWarning("No data found for scan " + scanName + " from " + start + " to " + end)
-		helpers.PrintQuestion("You sure your date format is the YYYY-MM-DD HH:MM:SS?")
+		helpers.PrintInfo("Make sure the dates use the YYYY-MM-DD HH:MM:SS format")
 		return
 	}
 

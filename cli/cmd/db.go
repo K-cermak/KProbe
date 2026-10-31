@@ -11,7 +11,7 @@ import (
 
 func InitDatabase() {
 	if db.DatabaseExist() {
-		helpers.PrintError(true, "Database already exists, if you want to reset it, run <kprobe db reset>")
+		helpers.PrintError(true, "Database already exists. To reset it, run <kprobe db reset>")
 	}
 
 	helpers.PrintQuestion("Do you want to initialize the database? (y/n)")
@@ -27,15 +27,15 @@ func InitDatabase() {
 	helpers.PrintInfo("Initializing database")
 	db.InitDatabase()
 	helpers.PrintSuccess("Database initialized successfully")
-	helpers.PrintInfo("You should now run <sudo kprobe api restart> to apply some changes")
+	helpers.PrintInfo("Run <sudo kprobe api restart> to apply the changes")
 }
 
 func ResetDatabase() {
 	if !db.DatabaseExist() {
-		helpers.PrintError(true, "Database does not exist, did you want to run <kprobe db init>?")
+		helpers.PrintError(true, "Database does not exist. Did you mean <kprobe db init>?")
 	}
 
-	helpers.PrintQuestion("Do you want to reset the database? \033[0;31mTHIS ACTION IS IRREVERSIBLE!\033[0m TYPE \"DESTROY\" TO CONFIRM")
+	helpers.PrintQuestion("Do you want to reset the database? \033[0;31mTHIS CANNOT BE UNDONE!\033[0m Type \"DESTROY\" to confirm")
 	reader := bufio.NewReader(os.Stdin)
 	input, _ := reader.ReadString('\n')
 	input = strings.TrimSpace(input)
@@ -48,5 +48,5 @@ func ResetDatabase() {
 	helpers.PrintInfo("Resetting database")
 	db.InitDatabase()
 	helpers.PrintSuccess("Database reset successfully")
-	helpers.PrintInfo("You should now run <sudo kprobe api restart> to apply some changes")
+	helpers.PrintInfo("Run <sudo kprobe api restart> to apply the changes")
 }
